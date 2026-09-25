@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { scroll-behavior: smooth; }
+body { @apply font-body bg-fog-50 text-ink antialiased; }
+
+/* Light, engaging site-wide background for the public pages — soft cool-to-warm
+   diagonal wash so it feels alive without competing with content. */
+.bg-site-gradient {
+  background: linear-gradient(135deg, #EFF6FF 0%, #FDFBFB 45%, #FFF1F2 100%);
+}
+/* Section band that reads as a distinct "stripe" while still letting the
+   page-wide gradient and logo watermark show through underneath. */
+.bg-site-band {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.container-page { @apply max-w-6xl mx-auto px-5 sm:px-8; }
+
+.btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 font-semibold transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-blue; }
+.btn-primary { @apply btn bg-brand-red text-white hover:bg-brand-redDeep; }
+.btn-secondary { @apply btn bg-white text-ink border border-ink/15 hover:border-brand-blue hover:text-brand-blue; }
+.btn-ghost { @apply btn bg-transparent text-white/90 hover:text-white; }
+
+.card { @apply bg-white rounded-card border border-ink/10 shadow-[0_1px_2px_rgba(15,23,42,0.06)]; }
+
+.input { @apply w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/40 focus:border-brand-blue; }
+.select-sm { @apply rounded-md border border-ink/15 px-2 py-1 text-xs bg-white w-auto focus:outline-none focus:ring-2 focus:ring-brand-blue/40 focus:border-brand-blue; }
+.label-sm { @apply text-xs font-medium text-ink/50; }
+
+@media print {
+  .no-print { display: none !important; }
+}

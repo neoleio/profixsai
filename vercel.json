@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/admin/:path*", "destination": "/index.html" },
+    { "source": "/services", "destination": "/index.html" },
+    { "source": "/about", "destination": "/index.html" },
+    { "source": "/repair-process", "destination": "/index.html" },
+    { "source": "/contact", "destination": "/index.html" },
+    { "source": "/book-a-repair", "destination": "/index.html" }
+  ]
+}
