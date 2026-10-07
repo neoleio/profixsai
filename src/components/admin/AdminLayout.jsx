@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, Bell, MessageSquare } from "lucide-react";
+import { Menu, X, Bell, MessageSquare, HelpCircle } from "lucide-react";
+import { categoryForPath } from "../../lib/helpContent.js";
 import Sidebar from "./Sidebar.jsx";
 import Logotype from "../site/Logotype.jsx";
 import { useAuth } from "../../lib/auth-context.jsx";
@@ -88,6 +89,9 @@ export default function AdminLayout() {
                 </Link>
               </>
             )}
+            <Link to={`/admin/help?cat=${categoryForPath(location.pathname)}`} aria-label="Help and support">
+              <HelpCircle size={20} />
+            </Link>
             <button onClick={() => setOpen((v) => !v)}>{open ? <X /> : <Menu />}</button>
           </div>
         </div>
@@ -96,6 +100,18 @@ export default function AdminLayout() {
             <Outlet />
           </PageFade>
         </main>
+
+        {/* Always-available help button — opens the help category for the page you're on */}
+        {!location.pathname.startsWith("/admin/help") && (
+          <Link
+            to={`/admin/help?cat=${categoryForPath(location.pathname)}`}
+            className="no-print fixed bottom-5 right-5 z-30 flex items-center gap-2 rounded-full bg-brand-blue text-white pl-3.5 pr-4 py-3 shadow-lg shadow-brand-blue/30 hover:bg-brand-blueDeep hover:-translate-y-0.5 transition-all"
+            aria-label="Help and support"
+          >
+            <HelpCircle size={20} />
+            <span className="hidden sm:inline text-sm font-semibold">Help</span>
+          </Link>
+        )}
       </div>
     </div>
   );

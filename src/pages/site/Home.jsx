@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { api } from "../../lib/api.js";
-import { useSettings } from "../../lib/useSettings.js";
+import { useContent } from "../../lib/useContent.js";
+import T from "../../components/site/T.jsx";
 import TrustBadges from "../../components/site/TrustBadges.jsx";
 import ServiceCard from "../../components/site/ServiceCard.jsx";
 import ProcessSteps from "../../components/site/ProcessSteps.jsx";
@@ -12,7 +13,7 @@ import HeroSlider from "../../components/site/HeroSlider.jsx";
 import { Reveal, StaggerGroup, StaggerItem } from "../../components/motion/index.jsx";
 
 export default function Home() {
-  const settings = useSettings();
+  const { t, s } = useContent();
   const [services, setServices] = useState([]);
   const [slides, setSlides] = useState([]);
 
@@ -24,30 +25,31 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-site-gradient text-ink">
+      <section style={s("home_hero_bg")} className="relative overflow-hidden bg-site-gradient text-ink">
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl" aria-hidden="true" />
         <div className="absolute top-1/2 -left-32 w-80 h-80 bg-brand-blue/10 rounded-full blur-3xl" aria-hidden="true" />
 
         <div className="container-page relative grid lg:grid-cols-2 gap-10 items-center py-16 lg:py-24">
           <StaggerGroup>
             <StaggerItem>
-              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-brand-red bg-brand-red/10 border border-brand-red/20 rounded-full px-3 py-1">
-                Trusted Gadget Repair
+              <span style={s("hero_badge")} className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-brand-red bg-brand-red/10 border border-brand-red/20 rounded-full px-3 py-1">
+                {t("hero_badge")}
               </span>
             </StaggerItem>
             <StaggerItem as="h1" className="font-display font-extrabold text-4xl sm:text-5xl leading-[1.1] mt-4">
-              {settings.hero_headline}
+              <T id="hero_headline" />
             </StaggerItem>
-            <StaggerItem as="p" className="mt-5 text-ink/60 text-lg max-w-lg">{settings.hero_subtext}</StaggerItem>
+            <StaggerItem as="p" className="mt-5 text-ink/60 text-lg max-w-lg"><T id="hero_subtext" /></StaggerItem>
             <StaggerItem className="mt-8 flex flex-wrap gap-4">
-              <Link to="/book-a-repair" className="btn-primary hover:shadow-lg hover:shadow-brand-red/30 hover:-translate-y-0.5">
-                Book a Repair
+              <Link to="/book-a-repair" style={s("hero_btn_primary")} className="btn-primary hover:shadow-lg hover:shadow-brand-red/30 hover:-translate-y-0.5">
+                {t("hero_btn_primary")}
               </Link>
               <Link
                 to="/services"
+                style={s("hero_btn_secondary")}
                 className="btn-secondary hover:-translate-y-0.5"
               >
-                View Services
+                {t("hero_btn_secondary")}
               </Link>
             </StaggerItem>
             <StaggerItem className="mt-10">
@@ -69,22 +71,22 @@ export default function Home() {
       {/* Why choose us */}
       <Reveal as="section" className="container-page py-16">
         <div className="text-center max-w-xl mx-auto mb-10">
-          <h2 className="font-display font-bold text-2xl sm:text-3xl">Why Choose ProFixsai</h2>
-          <p className="text-ink/60 mt-2">Repairs you can trust, from people who actually explain what's wrong.</p>
+          <T as="h2" id="home_why_title" className="block font-display font-bold text-2xl sm:text-3xl" />
+          <T as="p" id="home_why_sub" className="block text-ink/60 mt-2" />
         </div>
         <WhyChooseUs />
       </Reveal>
 
       {/* Services preview */}
-      <Reveal as="section" className="bg-site-band py-16">
+      <Reveal as="section" style={s("home_services_bg")} className="bg-site-band py-16">
         <div className="container-page">
           <div className="flex items-end justify-between gap-4 mb-8">
             <div>
-              <h2 className="font-display font-bold text-2xl sm:text-3xl">Our Services</h2>
-              <p className="text-ink/60 mt-1">Repairs for every device, handled by trained technicians.</p>
+              <T as="h2" id="home_services_title" className="block font-display font-bold text-2xl sm:text-3xl" />
+              <T as="p" id="home_services_sub" className="block text-ink/60 mt-1" />
             </div>
             <Link to="/services" className="hidden sm:inline text-brand-blue font-semibold text-sm hover:text-brand-blueDeep">
-              See all services →
+              <T id="home_services_link" />
             </Link>
           </div>
           <StaggerGroup className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -100,31 +102,31 @@ export default function Home() {
       {/* Repair process preview */}
       <Reveal as="section" className="container-page py-16">
         <div className="mb-8">
-          <h2 className="font-display font-bold text-2xl sm:text-3xl">How Repairs Work</h2>
-          <p className="text-ink/60 mt-1">A straightforward process from drop-off to pick-up.</p>
+          <T as="h2" id="home_process_title" className="block font-display font-bold text-2xl sm:text-3xl" />
+          <T as="p" id="home_process_sub" className="block text-ink/60 mt-1" />
         </div>
         <ProcessSteps />
       </Reveal>
 
       {/* Testimonials */}
-      <Reveal as="section" className="bg-site-band py-16">
+      <Reveal as="section" style={s("home_testi_bg")} className="bg-site-band py-16">
         <div className="container-page">
           <div className="text-center max-w-xl mx-auto mb-10">
-            <h2 className="font-display font-bold text-2xl sm:text-3xl">What Customers Say</h2>
-            <p className="text-ink/60 mt-2">Real repairs, real relief.</p>
+            <T as="h2" id="home_testi_title" className="block font-display font-bold text-2xl sm:text-3xl" />
+            <T as="p" id="home_testi_sub" className="block text-ink/60 mt-2" />
           </div>
           <Testimonials />
         </div>
       </Reveal>
 
       {/* CTA */}
-      <Reveal as="section" className="relative overflow-hidden bg-brand-blue py-16 text-center text-white">
+      <Reveal as="section" style={s("home_cta_bg")} className="relative overflow-hidden bg-brand-blue py-16 text-center text-white">
         <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-[32rem] h-64 bg-white/10 rounded-full blur-3xl" aria-hidden="true" />
         <div className="container-page relative">
-          <h2 className="font-display font-bold text-2xl sm:text-3xl">Got a gadget that needs fixing?</h2>
-          <p className="text-white/75 mt-2">Get a quote today — most repairs are diagnosed the same day.</p>
-          <Link to="/book-a-repair" className="btn-primary mt-6 hover:shadow-lg hover:shadow-brand-redDeep/40 hover:-translate-y-0.5">
-            Book a Repair
+          <T as="h2" id="cta_title" className="block font-display font-bold text-2xl sm:text-3xl" />
+          <T as="p" id="cta_sub" className="block text-white/75 mt-2" />
+          <Link to="/book-a-repair" style={s("cta_btn")} className="btn-primary mt-6 hover:shadow-lg hover:shadow-brand-redDeep/40 hover:-translate-y-0.5">
+            {t("cta_btn")}
           </Link>
         </div>
       </Reveal>

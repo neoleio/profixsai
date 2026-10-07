@@ -33,24 +33,70 @@ function normalize(settings) {
   };
 }
 
-let cache = null;
+// ---- Shared store -----------------------------------------------------------
+// One network request feeds every component (Navbar, Footer, pages…), and the
+// last response is kept in localStorage so returning visitors see the admin's
+// custom text/colors on first paint instead of a flash of the defaults.
+const STORAGE_KEY = "profixsai_settings_v1";
+const listeners = new Set();
+let cache = readStored();
+let started = false;
+let inflight = null;
 
-export function useSettings() {
-  const [settings, setSettings] = useState(cache || defaults);
-
-  useEffect(() => {
-    if (cache) return;
-    api.get("/settings").then(({ settings }) => {
-      cache = normalize({ ...defaults, ...settings });
-      setSettings(cache);
-    }).catch(() => {});
-  }, []);
-
-  return settings;
+function readStored() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? normalize({ ...defaults, ...JSON.parse(raw) }) : null;
+  } catch {
+    return null;
+  }
 }
 
+function writeStored(settings) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    /* storage full or blocked — not critical */
+  }
+}
+
+function load() {
+  if (inflight) return inflight;
+  inflight = api
+    .get("/settings")
+    .then(({ settings }) => {
+      cache = normalize({ ...defaults, ...settings });
+      writeStored(settings);
+      listeners.forEach((fn) => fn());
+    })
+    .catch(() => {})
+    .finally(() => {
+      inflight = null;
+    });
+  return inflight;
+}
+
+export function useSettings() {
+  const [, rerender] = useState(0);
+
+  useEffect(() => {
+    const fn = () => rerender((n) => n + 1);
+    listeners.add(fn);
+    if (!started) {
+      started = true;
+      load();
+    }
+    return () => listeners.delete(fn);
+  }, []);
+
+  return cache || normalize(defaults);
+}
+
+// Called after the admin saves — refetches so the public site (and any open
+// preview) picks up the change right away.
 export function invalidateSettingsCache() {
-  cache = null;
+  started = true;
+  load();
 }
 
 // A "map" button should work whether or not the admin has pasted a specific

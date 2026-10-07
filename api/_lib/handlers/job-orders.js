@@ -7,21 +7,11 @@ const STATUSES = ["Received", "Diagnosing", "Waiting for Approval", "Not Repaire
 
 async function generateJobNo() {
   const year = new Date().getFullYear();
-
-  const rows = await sql`
-    INSERT INTO job_order_counters (year, last_number)
-    VALUES (${year}, 1)
-    ON CONFLICT (year)
-    DO UPDATE SET last_number = job_order_counters.last_number + 1
-    RETURNING last_number
-  `;
-
-  const next = Number(rows[0].last_number)
-    .toString()
-    .padStart(4, "0");
-
+  const rows = await sql`select count(*)::int as count from job_orders where job_no like ${"JO-" + year + "-%"}`;
+  const next = (rows[0].count + 1).toString().padStart(4, "0");
   return `JO-${year}-${next}`;
 }
+
 async function listJobOrders(req, res) {
   const { q, status, payment_status, technician_id, date_from, date_to } = req.query || {};
   let rows = await sql`

@@ -27,6 +27,7 @@ import Users from "./pages/admin/Users.jsx";
 import AuditLogs from "./pages/admin/AuditLogs.jsx";
 import SettingsPage from "./pages/admin/SettingsPage.jsx";
 import Reports from "./pages/admin/Reports.jsx";
+import HelpSupport from "./pages/admin/HelpSupport.jsx";
 
 export default function App() {
   return (
@@ -144,6 +145,8 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="help" element={<HelpSupport />} />
+
         <Route
           path="settings"
           element={

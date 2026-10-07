@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, ClipboardList, Users, Smartphone, Wrench,
-  HardHat, CreditCard, ShieldCheck, BarChart3, UserCog, History, Settings, LogOut, Inbox, MessageSquare, Receipt
+  HardHat, CreditCard, ShieldCheck, BarChart3, UserCog, History, Settings, LogOut, Inbox, MessageSquare, Receipt, LifeBuoy
 } from "lucide-react";
 import { useAuth } from "../../lib/auth-context.jsx";
 import { useNewRequestsCount } from "../../lib/useNewRequestsCount.js";
@@ -66,6 +66,20 @@ export default function Sidebar({ onNavigate }) {
           );
         })}
       </nav>
+      <div className="px-3 pb-3">
+        <NavLink
+          to="/admin/help"
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              isActive ? "bg-brand-blue text-white" : "bg-white/5 text-white hover:bg-white/10"
+            }`
+          }
+        >
+          <LifeBuoy size={17} />
+          <span className="flex-1">Help &amp; Support</span>
+        </NavLink>
+      </div>
       <div className="px-5 py-4 border-t border-white/10">
         <p className="text-xs text-white/40">Signed in as</p>
         <p className="text-sm font-medium text-white">{user?.name}</p>

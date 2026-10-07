@@ -1,6 +1,7 @@
 import * as Icons from "lucide-react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import T from "./T.jsx";
 
 export default function ServiceCard({ service }) {
   const Icon = Icons[toPascalCase(service.icon)] || Icons.Wrench;
@@ -23,7 +24,7 @@ export default function ServiceCard({ service }) {
         to="/book-a-repair"
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-blue group-hover:gap-2.5 transition-all duration-300"
       >
-        Learn More <ArrowRight size={14} />
+        <T id="servicecard_link" /> <ArrowRight size={14} />
       </Link>
     </div>
   );

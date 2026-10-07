@@ -4,10 +4,10 @@ import { ArrowLeft, RotateCcw, X } from "lucide-react";
 import { api } from "../../lib/api.js";
 import { invalidateSettingsCache } from "../../lib/useSettings.js";
 import ImageUpload from "../../components/admin/ImageUpload.jsx";
+import SiteContentEditor from "../../components/admin/SiteContentEditor.jsx";
+import AddedTextBlocks from "../../components/admin/AddedTextBlocks.jsx";
 
 const FIELDS = [
-  { key: "hero_headline", label: "Homepage Headline" },
-  { key: "hero_subtext", label: "Homepage Supporting Text", textarea: true },
   { key: "facebook_url", label: "Facebook Page URL", placeholder: "https://facebook.com/yourpage" },
   { key: "youtube_url", label: "YouTube Channel URL", placeholder: "https://youtube.com/@yourchannel" },
   { key: "tiktok_url", label: "TikTok Profile URL", placeholder: "https://tiktok.com/@yourshop" },
@@ -23,7 +23,46 @@ const FIELDS = [
   }
 ];
 
+const TABS = [
+  { id: "general", label: "General" },
+  { id: "content", label: "Page Text & Colors" },
+  { id: "blocks", label: "Added Text" }
+];
+
 export default function SettingsPage() {
+  const [tab, setTab] = useState("general");
+
+  return (
+    <div className="max-w-4xl">
+      <Link to="/admin" className="inline-flex items-center gap-1.5 text-sm font-medium text-ink/50 hover:text-brand-blue transition-colors">
+        <ArrowLeft size={15} /> Back to Dashboard
+      </Link>
+      <h1 className="font-display font-bold text-2xl mt-3">Site Settings</h1>
+      <p className="text-ink/60 mt-1">Control the text, colors, links, and images shown on the public ProFixSAI website.</p>
+
+      <div className="flex flex-wrap gap-2 mt-5 border-b border-ink/10 pb-3">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+              tab === t.id ? "bg-ink text-white" : "text-ink/60 hover:bg-ink/5"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "general" && <GeneralSettings />}
+      {tab === "content" && <SiteContentEditor />}
+      {tab === "blocks" && <AddedTextBlocks />}
+    </div>
+  );
+}
+
+function GeneralSettings() {
   const [values, setValues] = useState({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -38,7 +77,8 @@ export default function SettingsPage() {
     e.preventDefault();
     setSaving(true);
     setSaved(false);
-    await api.put("/settings", { settings: values });
+    const own = Object.fromEntries(FIELDS.map(({ key }) => [key, values[key] || ""]));
+    await api.put("/settings", { settings: own });
     invalidateSettingsCache();
     setSaving(false);
     setSaved(true);
@@ -51,13 +91,12 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl">
-      <Link to="/admin" className="inline-flex items-center gap-1.5 text-sm font-medium text-ink/50 hover:text-brand-blue transition-colors">
-        <ArrowLeft size={15} /> Back to Dashboard
-      </Link>
-      <h1 className="font-display font-bold text-2xl mt-3">Site Settings</h1>
-      <p className="text-ink/60 mt-1">Edit the text and links shown on the public ProFixSAI website.</p>
+      <p className="text-ink/60 mt-5 text-sm">
+        Contact details, social links, and operating hours. To change the homepage headline or any other wording and colors,
+        use the <strong>Page Text &amp; Colors</strong> tab.
+      </p>
 
-      <form onSubmit={save} className="card p-6 mt-6 flex flex-col gap-4">
+      <form onSubmit={save} className="card p-6 mt-4 flex flex-col gap-4">
         {FIELDS.map(({ key, label, textarea, placeholder }) => (
           <label key={key} className="flex flex-col gap-1.5 text-sm">
             <span className="font-medium text-ink/80">{label}</span>

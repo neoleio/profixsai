@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { api } from "../../lib/api.js";
+import { useContent } from "../../lib/useContent.js";
+import T from "../../components/site/T.jsx";
 
 const initial = { full_name: "", contact_number: "", email: "", device_description: "", problem_description: "", preferred_date: "" };
 
 export default function BookRepair() {
+  const { t, s } = useContent();
   const [form, setForm] = useState(initial);
   const [status, setStatus] = useState("idle"); // idle | submitting | done | error
   const [error, setError] = useState("");
@@ -29,36 +32,34 @@ export default function BookRepair() {
   if (status === "done") {
     return (
       <div className="container-page py-20 max-w-lg text-center">
-        <h1 className="font-display font-bold text-2xl">Request received</h1>
-        <p className="text-ink/60 mt-3">
-          Thanks for reaching out. Our team will contact you shortly to confirm your drop-off and give you a quote.
-        </p>
+        <T as="h1" id="book_done_title" className="block font-display font-bold text-2xl" />
+        <T as="p" id="book_done_msg" className="block text-ink/60 mt-3" />
       </div>
     );
   }
 
   return (
     <div className="container-page py-14 max-w-lg">
-      <h1 className="font-display font-bold text-3xl">Book a Repair</h1>
-      <p className="text-ink/60 mt-2">Tell us about your device and the problem — we'll get back to you to confirm details.</p>
+      <T as="h1" id="book_title" className="block font-display font-bold text-3xl" />
+      <T as="p" id="book_intro" className="block text-ink/60 mt-2" />
 
       <form onSubmit={onSubmit} className="card p-6 mt-8 flex flex-col gap-4">
-        <Field label="Your Name">
+        <Field label={<T id="book_f_name" />}>
           <input required value={form.full_name} onChange={(e) => update("full_name", e.target.value)} className="input" />
         </Field>
-        <Field label="Contact Number">
+        <Field label={<T id="book_f_contact" />}>
           <input required value={form.contact_number} onChange={(e) => update("contact_number", e.target.value)} className="input" />
         </Field>
-        <Field label="Email (optional)">
+        <Field label={<T id="book_f_email" />}>
           <input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} className="input" />
         </Field>
-        <Field label="Device (type, brand, model)">
+        <Field label={<T id="book_f_device" />}>
           <input required value={form.device_description} onChange={(e) => update("device_description", e.target.value)} className="input" placeholder="e.g. Smartphone, Samsung Galaxy S22" />
         </Field>
-        <Field label="What's the problem?">
+        <Field label={<T id="book_f_problem" />}>
           <textarea required value={form.problem_description} onChange={(e) => update("problem_description", e.target.value)} className="input min-h-[100px]" />
         </Field>
-        <Field label="Preferred Date (optional)">
+        <Field label={<T id="book_f_date" />}>
           <input
             type="date"
             min={new Date().toISOString().slice(0, 10)}
@@ -70,8 +71,8 @@ export default function BookRepair() {
 
         {error && <p className="text-sm text-brand-red">{error}</p>}
 
-        <button type="submit" disabled={status === "submitting"} className="btn-primary mt-2 disabled:opacity-60">
-          {status === "submitting" ? "Sending..." : "Send Request"}
+        <button type="submit" disabled={status === "submitting"} style={s("book_btn_send")} className="btn-primary mt-2 disabled:opacity-60">
+          {status === "submitting" ? "Sending..." : t("book_btn_send")}
         </button>
       </form>
     </div>

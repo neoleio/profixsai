@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
 import Footer from "./Footer.jsx";
+import { CustomBlocks } from "./T.jsx";
 import { PageFade } from "../motion/index.jsx";
 
 export default function SiteLayout() {
@@ -21,7 +22,9 @@ export default function SiteLayout() {
       <Navbar />
       <main className="flex-1 relative">
         <PageFade pageKey={location.pathname}>
+          <CustomBlocks position="top" />
           <Outlet />
+          <CustomBlocks position="bottom" />
         </PageFade>
       </main>
       <Footer />

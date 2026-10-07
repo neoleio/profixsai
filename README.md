@@ -172,3 +172,32 @@ not built yet, so the system stays simple to operate today:
 - Every create/update/delete that matters is written to `audit_logs`.
 - Change `JWT_SECRET` to your own long random value before going live —
   don't reuse the placeholder in `.env.example`.
+
+---
+
+## Editing the public site from Admin → Settings
+
+Settings now has three tabs (administrators only):
+
+- **General** — contact details, social links, operating hours, homepage slides.
+- **Page Text & Colors** — every piece of wording on the public site (header, footer, Home,
+  Services, About, Repair Process, Contact, Book a Repair), each with an optional **text color**
+  and **background/highlight color**. Buttons take a button color; whole sections (hero, header,
+  footer, bands) take a background color. Nothing changes until **Save changes** is pressed.
+- **Added Text** — create extra text blocks (announcements, notices, promos): choose the page
+  (or every page), top/bottom placement, alignment, and colors; hide/show without deleting.
+
+**How it works (no database migration needed):** overrides are stored in the existing
+`system_settings` table as `<id>`, `<id>__color`, `<id>__bg`, plus one `custom_blocks` JSON value.
+The list of editable items lives in `src/lib/siteContent.js` — to make a *new* piece of public
+text editable, add one line there and render it with `<T id="your_id" />`
+(`src/components/site/T.jsx`). No new serverless function is required, so the Vercel Hobby
+12-function limit is unaffected.
+
+## Help & Support (admin)
+
+`/admin/help` — a categorized, searchable guide (Getting Started, Repair Requests & Messages,
+Job Orders, Customers & Devices, Payments/Warranty/Order Slips, Dashboard & Reports, Managing the
+Public Website, Users & Security, Troubleshooting). Topics are filtered by the signed-in role. A
+floating **Help** button on every admin screen opens the category for the page you're on.
+Content is plain data in `src/lib/helpContent.js`.

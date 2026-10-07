@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import ServiceCard from "../../components/site/ServiceCard.jsx";
 import { api } from "../../lib/api.js";
+import T from "../../components/site/T.jsx";
 
 export default function Services() {
   const [services, setServices] = useState([]);
@@ -15,10 +16,8 @@ export default function Services() {
 
   return (
     <div className="container-page py-14">
-      <h1 className="font-display font-bold text-3xl">Our Services</h1>
-      <p className="text-ink/60 mt-2 max-w-xl">
-        From cracked screens to liquid damage, we repair smartphones, laptops, tablets, and other gadgets.
-      </p>
+      <T as="h1" id="services_title" className="block font-display font-bold text-3xl" />
+      <T as="p" id="services_intro" className="block text-ink/60 mt-2 max-w-xl" />
 
       <img
         src="/assets/promo-banner.jpg"

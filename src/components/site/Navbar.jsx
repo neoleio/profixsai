@@ -5,24 +5,27 @@ import { Menu, X, Facebook, Youtube, MapPin } from "lucide-react";
 import { useSettings, getMapUrl } from "../../lib/useSettings.js";
 import Logotype from "./Logotype.jsx";
 import TikTokIcon from "./TikTokIcon.jsx";
+import { useContent } from "../../lib/useContent.js";
+import T from "./T.jsx";
 
 const LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/services", label: "Services" },
-  { to: "/about", label: "About" },
-  { to: "/repair-process", label: "Repair Process" },
-  { to: "/contact", label: "Contact" }
+  { to: "/", id: "nav_home" },
+  { to: "/services", id: "nav_services" },
+  { to: "/about", id: "nav_about" },
+  { to: "/repair-process", id: "nav_process" },
+  { to: "/contact", id: "nav_contact" }
 ];
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const settings = useSettings();
   const mapUrl = getMapUrl(settings);
+  const { t, s } = useContent();
 
   useEffect(() => setOpen(false), []);
 
   return (
-    <header className="sticky top-0 z-40 bg-fog-100/95 backdrop-blur border-b border-ink/10 shadow-sm">
+    <header style={s("nav_bg")} className="sticky top-0 z-40 bg-fog-100/95 backdrop-blur border-b border-ink/10 shadow-sm">
       <div className="container-page flex items-center justify-between h-16">
         <Link to="/" className="flex items-center gap-2.5">
           <img src="/assets/logo.png" alt="ProFixSAI logo" className="w-9 h-9 rounded-full object-cover" />
@@ -41,7 +44,7 @@ export default function Navbar() {
                 }`
               }
             >
-              {l.label}
+              <T id={l.id} />
             </NavLink>
           ))}
         </nav>
@@ -74,7 +77,7 @@ export default function Navbar() {
               <MapPin size={18} />
             </a>
           )}
-          <Link to="/book-a-repair" className="btn-primary hover:shadow-lg hover:shadow-brand-red/30 hover:-translate-y-0.5">Book a Repair</Link>
+          <Link to="/book-a-repair" style={s("nav_book")} className="btn-primary hover:shadow-lg hover:shadow-brand-red/30 hover:-translate-y-0.5">{t("nav_book")}</Link>
         </div>
 
         <button className="md:hidden text-ink" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
@@ -93,7 +96,7 @@ export default function Navbar() {
           >
             {LINKS.map((l) => (
               <NavLink key={l.to} to={l.to} end={l.to === "/"} onClick={() => setOpen(false)} className="py-1">
-                {l.label}
+                <T id={l.id} />
               </NavLink>
             ))}
             <div className="flex items-center gap-4 pt-2 border-t border-ink/10">
@@ -102,7 +105,7 @@ export default function Navbar() {
               {settings.tiktok_url && <a href={settings.tiktok_url} target="_blank" rel="noreferrer"><TikTokIcon size={19} /></a>}
               {mapUrl && <a href={mapUrl} target="_blank" rel="noreferrer" aria-label="Find our shop on the map"><MapPin size={20} /></a>}
             </div>
-            <Link to="/book-a-repair" onClick={() => setOpen(false)} className="btn-primary w-full">Book a Repair</Link>
+            <Link to="/book-a-repair" onClick={() => setOpen(false)} style={s("nav_book")} className="btn-primary w-full">{t("nav_book")}</Link>
           </motion.div>
         )}
       </AnimatePresence>
