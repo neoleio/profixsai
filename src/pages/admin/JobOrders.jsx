@@ -83,7 +83,7 @@ export default function JobOrders() {
       <div className="card mt-6 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-ink/40 text-xs uppercase tracking-wide border-b border-ink/10">
+            <tr className="text-left text-ink/50 text-xs uppercase tracking-wide border-b border-ink/10 bg-fog-50/80">
               <th className="py-3 px-4">Job No.</th>
               <th className="py-3 px-4">Customer</th>
               <th className="py-3 px-4">Device</th>
@@ -96,7 +96,7 @@ export default function JobOrders() {
           </thead>
           <tbody>
             {visibleJobOrders.map((j) => (
-              <tr key={j.id} className="border-b border-ink/5 last:border-0">
+              <tr key={j.id} className="border-b border-ink/5 last:border-0 transition-colors hover:bg-brand-blue/[0.035]">
                 <td className="py-3 px-4 font-mono text-xs">{j.job_no}</td>
                 <td className="py-3 px-4">{j.customer_name}</td>
                 <td className="py-3 px-4">{j.brand} {j.model}</td>
@@ -105,11 +105,11 @@ export default function JobOrders() {
                 <td className="py-3 px-4"><StatusBadge value={j.payment_status} /></td>
                 <td className="py-3 px-4 text-ink/60">{formatDate(j.date_received)}</td>
                 <td className="py-3 px-4">
-                  <div className="flex items-center gap-3 text-ink/50">
-                    <Link to={`/admin/job-orders/${j.id}`} title="View / Edit" className="hover:text-brand-blue"><Eye size={16} /></Link>
-                    <Link to={`/admin/order-slip?jobOrderId=${j.id}`} title="Print" className="hover:text-brand-blue"><Printer size={16} /></Link>
+                  <div className="flex items-center gap-1 text-ink/50">
+                    <Link to={`/admin/job-orders/${j.id}`} title="View / Edit" aria-label={`View or edit job order ${j.job_no}`} className="p-2 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"><Eye size={16} /></Link>
+                    <Link to={`/admin/order-slip?jobOrderId=${j.id}`} title="Print" aria-label={`Print job order ${j.job_no}`} className="p-2 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"><Printer size={16} /></Link>
                     {user.role === "admin" && (
-                      <button onClick={() => remove(j.id)} title="Delete" className="hover:text-brand-red"><Trash2 size={16} /></button>
+                      <button onClick={() => remove(j.id)} title="Delete" aria-label={`Delete job order ${j.job_no}`} className="p-2 rounded-md hover:bg-brand-red/10 hover:text-brand-red transition-colors"><Trash2 size={16} /></button>
                     )}
                   </div>
                 </td>

@@ -25,9 +25,8 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section style={s("home_hero_bg")} className="relative overflow-hidden bg-site-gradient text-ink">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl" aria-hidden="true" />
-        <div className="absolute top-1/2 -left-32 w-80 h-80 bg-brand-blue/10 rounded-full blur-3xl" aria-hidden="true" />
+      <section style={s("home_hero_bg")} className="hero-section relative isolate overflow-hidden bg-site-gradient text-ink">
+        <div className="hero-section__grid absolute inset-0 pointer-events-none" aria-hidden="true" />
 
         <div className="container-page relative grid lg:grid-cols-2 gap-10 items-center py-16 lg:py-24">
           <StaggerGroup>
@@ -62,8 +61,7 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="absolute -inset-4 bg-brand-blue/10 rounded-card blur-2xl" aria-hidden="true" />
-            <HeroSlider slides={slides} className="relative rounded-card border border-ink/10 w-full h-[320px] sm:h-[420px] shadow-2xl shadow-ink/10" />
+            <HeroSlider slides={slides} className="relative rounded-card border border-ink/10 w-full h-[280px] sm:h-[420px] shadow-xl shadow-ink/10" />
           </motion.div>
         </div>
       </section>
@@ -120,13 +118,13 @@ export default function Home() {
       </Reveal>
 
       {/* CTA */}
-      <Reveal as="section" style={s("home_cta_bg")} className="relative overflow-hidden bg-brand-blue py-16 text-center text-white">
-        <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-[32rem] h-64 bg-white/10 rounded-full blur-3xl" aria-hidden="true" />
-        <div className="container-page relative">
+      <Reveal as="section" style={s("home_cta_bg")} className="home-cta relative overflow-hidden bg-ink py-16 text-center text-white">
+        <div className="home-cta__rule absolute inset-x-0 top-0 h-px bg-brand-red" aria-hidden="true" />
+        <div className="container-page relative max-w-3xl">
           <T as="h2" id="cta_title" className="block font-display font-bold text-2xl sm:text-3xl" />
           <T as="p" id="cta_sub" className="block text-white/75 mt-2" />
-          <Link to="/book-a-repair" style={s("cta_btn")} className="btn-primary mt-6 hover:shadow-lg hover:shadow-brand-redDeep/40 hover:-translate-y-0.5">
-            {t("cta_btn")}
+          <Link to="/book-a-repair" style={s("cta_btn")} className="btn-primary mt-6 group hover:shadow-lg hover:shadow-brand-redDeep/30 hover:-translate-y-0.5">
+            {t("cta_btn")} <span aria-hidden="true" className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
           </Link>
         </div>
       </Reveal>

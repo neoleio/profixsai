@@ -50,17 +50,23 @@ export default function Sidebar({ onNavigate }) {
               end={end}
               onClick={onNavigate}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive ? "bg-white/10 text-white" : "hover:bg-white/5 hover:text-white"
+                `relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-white/10 text-white before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-r-full before:bg-brand-red"
+                    : "hover:bg-white/5 hover:text-white"
                 }`
               }
             >
-              <Icon size={17} />
-              <span className="flex-1">{label}</span>
-              {count > 0 && (
-                <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-brand-red text-white text-[11px] font-bold grid place-items-center">
-                  {count > 9 ? "9+" : count}
-                </span>
+              {({ isActive }) => (
+                <>
+                  <Icon size={17} className={isActive ? "text-brand-red" : ""} />
+                  <span className="flex-1">{label}</span>
+                  {count > 0 && (
+                    <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-brand-red text-white text-[11px] font-bold grid place-items-center">
+                      {count > 9 ? "9+" : count}
+                    </span>
+                  )}
+                </>
               )}
             </NavLink>
           );

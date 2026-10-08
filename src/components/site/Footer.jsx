@@ -12,7 +12,7 @@ export default function Footer() {
   const { s } = useContent();
 
   return (
-    <footer style={s("footer_bg")} className="bg-fog-100 border-t border-ink/10 text-ink/60 mt-24">
+    <footer style={s("footer_bg")} className="bg-fog-100 border-t border-ink/10 text-ink/60 mt-auto">
       <div className="container-page py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <div className="flex items-center gap-2.5 mb-3">

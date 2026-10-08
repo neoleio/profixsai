@@ -30,84 +30,87 @@ export default function Contact() {
   }
 
   return (
-    <div className="container-page py-14 max-w-2xl">
+    <div className="container-page py-14 max-w-6xl">
       <T as="h1" id="contact_title" className="block font-display font-bold text-3xl" />
-      <T as="p" id="contact_intro" className="block text-ink/60 mt-2" />
+      <T as="p" id="contact_intro" className="block text-ink/60 mt-2 max-w-2xl" />
 
-      <div className="grid gap-4 mt-8">
-        {settings.contact_phone && (
-          <div className="card p-5 flex items-center gap-4">
-            <Phone className="text-brand-blue" />
-            <div>
-              <T as="p" id="contact_label_phone" className="block text-xs text-ink/50" />
-              <p className="font-medium">{settings.contact_phone}</p>
-            </div>
-          </div>
-        )}
-        {settings.contact_email && (
-          <div className="card p-5 flex items-center gap-4">
-            <Mail className="text-brand-blue" />
-            <div>
-              <T as="p" id="contact_label_email" className="block text-xs text-ink/50" />
-              <p className="font-medium">{settings.contact_email}</p>
-            </div>
-          </div>
-        )}
-        {settings.contact_address && (
-          <div className="card p-5 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <MapPin className="text-brand-blue" />
-              <div>
-                <T as="p" id="contact_label_address" className="block text-xs text-ink/50" />
-                <p className="font-medium">{settings.contact_address}</p>
+      <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-10 lg:gap-14 mt-10 items-start">
+        <div>
+          <div className="grid gap-4">
+            {settings.contact_phone && (
+              <div className="card p-5 flex items-center gap-4">
+                <Phone className="text-brand-blue" />
+                <div>
+                  <T as="p" id="contact_label_phone" className="block text-xs text-ink/50" />
+                  <a href={`tel:${settings.contact_phone}`} className="font-medium hover:text-brand-blue transition-colors">{settings.contact_phone}</a>
+                </div>
               </div>
-            </div>
-            {mapUrl && (
-              <a href={mapUrl} target="_blank" rel="noreferrer" style={s("contact_btn_directions")} className="btn-secondary shrink-0">
-                <MapPin size={16} /> {t("contact_btn_directions")}
+            )}
+            {settings.contact_email && (
+              <div className="card p-5 flex items-center gap-4">
+                <Mail className="text-brand-blue" />
+                <div>
+                  <T as="p" id="contact_label_email" className="block text-xs text-ink/50" />
+                  <a href={`mailto:${settings.contact_email}`} className="font-medium break-all hover:text-brand-blue transition-colors">{settings.contact_email}</a>
+                </div>
+              </div>
+            )}
+            {settings.contact_address && (
+              <div className="card p-5 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <MapPin className="text-brand-blue" />
+                  <div>
+                    <T as="p" id="contact_label_address" className="block text-xs text-ink/50" />
+                    <p className="font-medium">{settings.contact_address}</p>
+                  </div>
+                </div>
+                {mapUrl && (
+                  <a href={mapUrl} target="_blank" rel="noreferrer" style={s("contact_btn_directions")} className="btn-secondary shrink-0">
+                    <MapPin size={16} /> {t("contact_btn_directions")}
+                  </a>
+                )}
+              </div>
+            )}
+            {settings.operating_hours && (
+              <div className="card p-5 flex items-center gap-4">
+                <Clock className="text-brand-blue" />
+                <div>
+                  <T as="p" id="contact_label_hours" className="block text-xs text-ink/50" />
+                  <p className="font-medium whitespace-pre-line">{settings.operating_hours}</p>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-3 mt-5">
+            {settings.facebook_url && (
+              <a href={settings.facebook_url} target="_blank" rel="noreferrer" style={s("contact_btn_facebook")} className="btn-secondary">
+                <Facebook size={16} /> {t("contact_btn_facebook")}
+              </a>
+            )}
+            {settings.youtube_url && (
+              <a href={settings.youtube_url} target="_blank" rel="noreferrer" style={s("contact_btn_youtube")} className="btn-secondary">
+                <Youtube size={16} /> {t("contact_btn_youtube")}
+              </a>
+            )}
+            {settings.tiktok_url && (
+              <a href={settings.tiktok_url} target="_blank" rel="noreferrer" style={s("contact_btn_tiktok")} className="btn-secondary">
+                <TikTokIcon size={16} /> {t("contact_btn_tiktok")}
               </a>
             )}
           </div>
-        )}
-        {settings.operating_hours && (
-          <div className="card p-5 flex items-center gap-4">
-            <Clock className="text-brand-blue" />
-            <div>
-              <T as="p" id="contact_label_hours" className="block text-xs text-ink/50" />
-              <p className="font-medium whitespace-pre-line">{settings.operating_hours}</p>
-            </div>
-          </div>
-        )}
-        <div className="flex flex-wrap gap-3 mt-2">
-          {settings.facebook_url && (
-            <a href={settings.facebook_url} target="_blank" rel="noreferrer" style={s("contact_btn_facebook")} className="btn-secondary">
-              <Facebook size={16} /> {t("contact_btn_facebook")}
-            </a>
-          )}
-          {settings.youtube_url && (
-            <a href={settings.youtube_url} target="_blank" rel="noreferrer" style={s("contact_btn_youtube")} className="btn-secondary">
-              <Youtube size={16} /> {t("contact_btn_youtube")}
-            </a>
-          )}
-          {settings.tiktok_url && (
-            <a href={settings.tiktok_url} target="_blank" rel="noreferrer" style={s("contact_btn_tiktok")} className="btn-secondary">
-              <TikTokIcon size={16} /> {t("contact_btn_tiktok")}
-            </a>
-          )}
         </div>
-      </div>
 
-      <div className="mt-12">
-        <T as="h2" id="contact_review_title" className="block font-display font-bold text-2xl" />
-        <T as="p" id="contact_review_intro" className="block text-ink/60 mt-1" />
+        <section className="min-w-0">
+          <T as="h2" id="contact_review_title" className="block font-display font-bold text-2xl" />
+          <T as="p" id="contact_review_intro" className="block text-ink/60 mt-1" />
 
-        {status === "done" ? (
-          <div className="card p-6 mt-6 text-center">
-            <T as="p" id="contact_thanks_title" className="block font-display font-semibold text-lg" />
-            <T as="p" id="contact_thanks_msg" className="block text-ink/60 mt-1" />
-          </div>
-        ) : (
-          <form onSubmit={submitMessage} className="card p-6 mt-6 flex flex-col gap-4">
+          {status === "done" ? (
+            <div className="card p-6 mt-6 text-center">
+              <T as="p" id="contact_thanks_title" className="block font-display font-semibold text-lg" />
+              <T as="p" id="contact_thanks_msg" className="block text-ink/60 mt-1" />
+            </div>
+          ) : (
+            <form onSubmit={submitMessage} className="card p-6 mt-6 flex flex-col gap-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <label className="flex flex-col gap-1.5 text-sm">
                 <T id="contact_f_name" className="font-medium text-ink/80" />
@@ -146,8 +149,9 @@ export default function Contact() {
             <button type="submit" disabled={status === "submitting"} style={s("contact_btn_send")} className="btn-primary self-start disabled:opacity-60">
               {status === "submitting" ? "Sending..." : t("contact_btn_send")}
             </button>
-          </form>
-        )}
+            </form>
+          )}
+        </section>
       </div>
     </div>
   );
