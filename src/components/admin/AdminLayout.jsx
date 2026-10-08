@@ -52,10 +52,10 @@ export default function AdminLayout() {
 
       <div className="flex-1 min-w-0 relative">
         <div
-          className="fixed inset-0 lg:left-64 -z-10 opacity-[0.04] grayscale pointer-events-none"
+          className="fixed inset-0 lg:left-64 z-0 opacity-[0.08] grayscale pointer-events-none"
           style={{
             backgroundImage: "url(/assets/logo.png)",
-            backgroundSize: "320px auto",
+            backgroundSize: "min(60vw, 460px) auto",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center"
           }}
@@ -64,7 +64,7 @@ export default function AdminLayout() {
         <div className="fixed top-0 right-0 lg:right-0 w-80 h-80 -z-10 bg-brand-blue/[0.04] rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
         <div className="fixed bottom-0 left-1/3 w-96 h-96 -z-10 bg-brand-red/[0.03] rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
 
-        <div className="lg:hidden flex items-center justify-between px-4 h-14 bg-ink text-white">
+        <div className="lg:hidden relative z-10 flex items-center justify-between px-4 h-14 bg-ink text-white">
           <span className="flex items-center gap-2">
             <img src="/assets/logo.png" alt="ProFixSAI logo" className="w-7 h-7 rounded-full object-cover" />
             <Logotype size="base" />
@@ -96,7 +96,7 @@ export default function AdminLayout() {
             <button onClick={() => setOpen((v) => !v)}>{open ? <X /> : <Menu />}</button>
           </div>
         </div>
-        <main className="relative p-5 sm:p-8 max-w-6xl mx-auto">
+        <main className="relative z-10 p-5 sm:p-8 max-w-6xl mx-auto">
           <PageFade pageKey={location.pathname}>
             <Outlet />
           </PageFade>
