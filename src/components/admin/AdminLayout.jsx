@@ -52,7 +52,7 @@ export default function AdminLayout() {
 
       <div className="flex-1 min-w-0 relative">
         <div
-          className="fixed inset-0 lg:left-64 z-0 opacity-[0.08] grayscale pointer-events-none"
+          className="fixed inset-0 lg:left-64 z-0 opacity-[0.08] pointer-events-none"
           style={{
             backgroundImage: "url(/assets/logo.png)",
             backgroundSize: "min(60vw, 460px) auto",

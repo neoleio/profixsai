@@ -169,7 +169,7 @@ function Copy({ settings, customer, jobOrderNo, items, total, deposit, balance, 
         src="/assets/logo.png"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 m-auto w-[240px] h-[240px] object-contain opacity-[0.06] grayscale pointer-events-none"
+        className="absolute inset-0 m-auto w-[240px] h-[240px] object-contain opacity-[0.06] pointer-events-none"
       />
       <div className="relative z-10">
         <div className="flex items-start justify-between">
