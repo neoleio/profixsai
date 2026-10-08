@@ -169,10 +169,7 @@ function Copy({ settings, customer, jobOrderNo, items, total, deposit, balance, 
         src="/assets/logo.png"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 m-auto w-[320px] h-[320px] object-contain opacity-[0.085] pointer-events-none"
-        style={{
-          filter: "drop-shadow(0 0 18px rgba(59,130,246,0.25)) drop-shadow(0 0 32px rgba(226,55,68,0.13)) drop-shadow(0 4px 6px rgba(15,23,42,0.14))"
-        }}
+        className="absolute inset-0 m-auto w-[320px] h-[320px] object-contain opacity-[0.06] pointer-events-none"
       />
       <div className="relative z-10">
         <div className="flex items-start justify-between">
