@@ -52,15 +52,21 @@ export default function AdminLayout() {
 
       <div className="flex-1 min-w-0 relative">
         <div
-          className="fixed inset-0 lg:left-64 z-0 opacity-[0.08] pointer-events-none"
+          className="fixed inset-0 lg:left-64 z-0 flex items-center justify-center pointer-events-none"
           style={{
-            backgroundImage: "url(/assets/logo.png)",
-            backgroundSize: "min(75vw, 640px) auto",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center"
+            backgroundImage: "radial-gradient(ellipse at center, rgba(59,130,246,0.055), rgba(226,55,68,0.025) 38%, transparent 72%)"
           }}
           aria-hidden="true"
-        />
+        >
+          <img
+            src="/assets/logo.png"
+            alt=""
+            className="w-[min(75vw,640px)] h-auto object-contain opacity-[0.13]"
+            style={{
+              filter: "drop-shadow(0 0 24px rgba(59,130,246,0.3)) drop-shadow(0 0 42px rgba(226,55,68,0.16)) drop-shadow(0 5px 8px rgba(15,23,42,0.16))"
+            }}
+          />
+        </div>
         <div className="fixed top-0 right-0 lg:right-0 w-80 h-80 -z-10 bg-brand-blue/[0.04] rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
         <div className="fixed bottom-0 left-1/3 w-96 h-96 -z-10 bg-brand-red/[0.03] rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
 
