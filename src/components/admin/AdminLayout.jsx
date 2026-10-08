@@ -55,7 +55,7 @@ export default function AdminLayout() {
           className="fixed inset-0 lg:left-64 z-0 opacity-[0.08] pointer-events-none"
           style={{
             backgroundImage: "url(/assets/logo.png)",
-            backgroundSize: "min(60vw, 460px) auto",
+            backgroundSize: "min(75vw, 640px) auto",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center"
           }}
