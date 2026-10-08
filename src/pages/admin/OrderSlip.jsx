@@ -22,6 +22,7 @@ export default function OrderSlip() {
   const jobOrderId = searchParams.get("jobOrderId");
 
   const [customer, setCustomer] = useState({ name: "", contact: "", address: "", date: "" });
+  const [jobOrderNo, setJobOrderNo] = useState("");
   const [items, setItems] = useState([emptyItem()]);
   const [deposit, setDeposit] = useState("");
   const [sourceJobOrder, setSourceJobOrder] = useState(null);
@@ -35,6 +36,7 @@ export default function OrderSlip() {
     api.get(`/job-orders?id=${jobOrderId}`)
       .then(({ jobOrder, items: joItems, payments }) => {
         setSourceJobOrder(jobOrder);
+        setJobOrderNo(jobOrder.job_no || "");
         setCustomer({
           name: jobOrder.customer_name || "",
           contact: jobOrder.contact_number || "",
@@ -101,6 +103,10 @@ export default function OrderSlip() {
             <span className="font-medium text-ink/80">Received Date</span>
             <input type="date" className="input" value={customer.date} onChange={(e) => setCustomer((c) => ({ ...c, date: e.target.value }))} />
           </label>
+          <label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
+            <span className="font-medium text-ink/80">Job Order No.</span>
+            <input className="input" value={jobOrderNo} onChange={(e) => setJobOrderNo(e.target.value)} />
+          </label>
         </div>
 
         <div className="card p-6 mt-4">
@@ -149,14 +155,14 @@ export default function OrderSlip() {
       </div>
 
       <div className="hidden print:block">
-        <Copy settings={settings} customer={customer} items={paddedItems} total={total} deposit={deposit} balance={balance} qrSrc={qrSrc} />
-        <Copy settings={settings} customer={customer} items={paddedItems} total={total} deposit={deposit} balance={balance} qrSrc={qrSrc} />
+        <Copy settings={settings} customer={customer} jobOrderNo={jobOrderNo} items={paddedItems} total={total} deposit={deposit} balance={balance} qrSrc={qrSrc} />
+        <Copy settings={settings} customer={customer} jobOrderNo={jobOrderNo} items={paddedItems} total={total} deposit={deposit} balance={balance} qrSrc={qrSrc} />
       </div>
     </div>
   );
 }
 
-function Copy({ settings, customer, items, total, deposit, balance, qrSrc }) {
+function Copy({ settings, customer, jobOrderNo, items, total, deposit, balance, qrSrc }) {
   return (
     <div className="p-6 text-[11px] text-ink border-b-2 border-dashed border-ink/20 last:border-b-0">
       <div className="flex items-start justify-between">
@@ -171,6 +177,7 @@ function Copy({ settings, customer, items, total, deposit, balance, qrSrc }) {
           </div>
         </div>
         <div className="text-right">
+          <p className="font-semibold">Job Order No.: {jobOrderNo}</p>
           {settings.facebook_url && <p className="mb-1">Follow us on Facebook</p>}
           <img src={qrSrc} alt="Scan to visit our website" className="w-16 h-16 ml-auto" />
         </div>

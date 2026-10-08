@@ -54,8 +54,9 @@ export default function AdminLayout() {
         <div
           className="fixed inset-0 lg:left-64 -z-10 opacity-[0.04] grayscale pointer-events-none"
           style={{
-            backgroundImage: "url(/assets/repair-macro-2.jpg)",
-            backgroundSize: "cover",
+            backgroundImage: "url(/assets/logo.png)",
+            backgroundSize: "320px auto",
+            backgroundRepeat: "no-repeat",
             backgroundPosition: "center"
           }}
           aria-hidden="true"
