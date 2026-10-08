@@ -164,74 +164,82 @@ export default function OrderSlip() {
 
 function Copy({ settings, customer, jobOrderNo, items, total, deposit, balance, qrSrc }) {
   return (
-    <div className="p-6 text-[11px] text-ink border-b-2 border-dashed border-ink/20 last:border-b-0">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <img src="/assets/logo.png" alt="ProFixSAI logo" className="w-14 h-14 rounded-full object-cover" />
-          <div>
-            <Logotype size="lg" light />
-            <p className="font-semibold uppercase">Computer and Laptop Repair</p>
-            {settings.contact_address && <p>{settings.contact_address}</p>}
-            {settings.contact_phone && <p>Contact Number: {settings.contact_phone}</p>}
-            {settings.contact_email && <p>Email: {settings.contact_email}</p>}
+    <div className="relative isolate p-6 text-[11px] text-ink border-b-2 border-dashed border-ink/20 last:border-b-0">
+      <img
+        src="/assets/logo.png"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 m-auto w-[240px] h-[240px] object-contain opacity-[0.06] grayscale pointer-events-none"
+      />
+      <div className="relative z-10">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <img src="/assets/logo.png" alt="ProFixSAI logo" className="w-14 h-14 rounded-full object-cover" />
+            <div>
+              <Logotype size="lg" light />
+              <p className="font-semibold uppercase">Computer and Laptop Repair</p>
+              {settings.contact_address && <p>{settings.contact_address}</p>}
+              {settings.contact_phone && <p>Contact Number: {settings.contact_phone}</p>}
+              {settings.contact_email && <p>Email: {settings.contact_email}</p>}
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="font-semibold">Job Order No.: {jobOrderNo}</p>
+            {settings.facebook_url && <p className="mb-1">Follow us on Facebook</p>}
+            <img src={qrSrc} alt="Scan to visit our website" className="w-16 h-16 ml-auto" />
           </div>
         </div>
-        <div className="text-right">
-          <p className="font-semibold">Job Order No.: {jobOrderNo}</p>
-          {settings.facebook_url && <p className="mb-1">Follow us on Facebook</p>}
-          <img src={qrSrc} alt="Scan to visit our website" className="w-16 h-16 ml-auto" />
-        </div>
-      </div>
 
-      <p className="mt-3">Services: Laptop, Macbook, Cellphone, Printer, Motherboard Level Repair, Chip Level Repair, GPU Repair</p>
+        <p className="mt-3">Services: Laptop, Macbook, Cellphone, Printer, Motherboard Level Repair, Chip Level Repair, GPU Repair</p>
 
-      <table className="w-full border border-ink mt-2 border-collapse">
-        <tbody>
-          <tr>
-            <td className="border border-ink p-1 w-1/2">Client Name: {customer.name}</td>
-            <td className="border border-ink p-1">Date: {customer.date}</td>
-          </tr>
-          <tr>
-            <td className="border border-ink p-1">Address: {customer.address}</td>
-            <td className="border border-ink p-1">Contact #: {customer.contact}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <table className="w-full border border-ink border-collapse mt-1">
-        <thead>
-          <tr>
-            <th className="border border-ink p-1 w-16 font-semibold">Quantity</th>
-            <th className="border border-ink p-1 font-semibold">Description</th>
-            <th className="border border-ink p-1 w-24 font-semibold">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((it, i) => (
-            <tr key={i}>
-              <td className="border border-ink p-1 h-5">{it?.qty}</td>
-              <td className="border border-ink p-1">{it?.description}</td>
-              <td className="border border-ink p-1">{it?.amount ? Number(it.amount).toFixed(2) : ""}</td>
+        <table className="w-full border border-ink mt-2 border-collapse">
+          <tbody>
+            <tr>
+              <td className="border border-ink p-1 w-1/2">Client Name: {customer.name}</td>
+              <td className="border border-ink p-1">Date: {customer.date}</td>
             </tr>
-          ))}
-        </tbody>
-      </table>
+            <tr>
+              <td className="border border-ink p-1">Address: {customer.address}</td>
+              <td className="border border-ink p-1">Contact #: {customer.contact}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <table className="w-full border border-ink border-collapse">
-        <tbody>
-          <tr className="bg-brand-red text-white font-semibold">
-            <td className="border border-ink p-1">Deposit: {Number(deposit || 0).toFixed(2)}</td>
-            <td className="border border-ink p-1">Remaining Balance: {balance.toFixed(2)}</td>
-            <td className="border border-ink p-1">Total: {total.toFixed(2)}</td>
-          </tr>
-        </tbody>
-      </table>
+        <table className="w-full border border-ink border-collapse mt-1">
+          <thead>
+            <tr>
+              <th className="border border-ink p-1 w-16 font-semibold">Quantity</th>
+              <th className="border border-ink p-1 font-semibold">Description</th>
+              <th className="border border-ink p-1 w-24 font-semibold">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((it, i) => (
+              <tr key={i}>
+                <td className="border border-ink p-1 h-5">{it?.qty}</td>
+                <td className="border border-ink p-1">{it?.description}</td>
+                <td className="border border-ink p-1">{it?.amount ? Number(it.amount).toFixed(2) : ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      <p className="mt-2">Warranty: _______________________________________________</p>
+        <table className="w-full border border-ink border-collapse">
+          <tbody>
+            <tr className="bg-brand-red text-white font-semibold">
+              <td className="border border-ink p-1">Deposit: {Number(deposit || 0).toFixed(2)}</td>
+              <td className="border border-ink p-1">Remaining Balance: {balance.toFixed(2)}</td>
+              <td className="border border-ink p-1">Total: {total.toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <div className="flex justify-between mt-6">
-        <p className="border-t border-ink pt-1 w-40 text-center">Client Signature</p>
-        <p className="border-t border-ink pt-1 w-40 text-center">Authorized Signature</p>
+        <p className="mt-2">Warranty: _______________________________________________</p>
+
+        <div className="flex justify-between mt-6">
+          <p className="border-t border-ink pt-1 w-40 text-center">Client Signature</p>
+          <p className="border-t border-ink pt-1 w-40 text-center">Authorized Signature</p>
+        </div>
       </div>
     </div>
   );
