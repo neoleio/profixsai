@@ -4,6 +4,7 @@ import { Plus, Minus, Printer, FileInput } from "lucide-react";
 import { useSettings } from "../../lib/useSettings.js";
 import { api } from "../../lib/api.js";
 import { toDateInputValue } from "../../lib/date.js";
+import Logotype from "../../components/site/Logotype.jsx";
 
 // Pure client-side receipt/order-slip builder — nothing here is saved to the
 // database. "Download PDF" opens the browser's print dialog, where choosing
@@ -163,7 +164,7 @@ export default function OrderSlip() {
 
 function Copy({ settings, customer, jobOrderNo, items, total, deposit, balance, qrSrc }) {
   return (
-    <div className="relative isolate overflow-hidden p-6 text-[11px] text-ink border-b-2 border-dashed border-ink/20 last:border-b-0">
+    <div className="relative isolate overflow-hidden p-4 text-[12px] leading-snug text-ink border-b-2 border-dashed border-ink/20 last:border-b-0">
       <img
         src="/assets/logo.png"
         alt=""
@@ -172,20 +173,24 @@ function Copy({ settings, customer, jobOrderNo, items, total, deposit, balance, 
       />
       <div className="relative z-10">
         <div className="flex items-start justify-between">
-          <div>
-            <p className="font-semibold uppercase">Computer and Laptop Repair</p>
-            {settings.contact_address && <p>{settings.contact_address}</p>}
-            {settings.contact_phone && <p>Contact Number: {settings.contact_phone}</p>}
-            {settings.contact_email && <p>Email: {settings.contact_email}</p>}
+          <div className="min-w-0">
+            <div className="flex items-center gap-3">
+              <img src="/assets/logo.png" alt="ProFixSAI logo" className="w-16 h-16 rounded-full object-cover" />
+              <Logotype size="xl" light />
+            </div>
+            <p className="font-bold uppercase mt-1">Computer and Laptop Repair</p>
+            {settings.contact_address && <p className="font-medium">{settings.contact_address}</p>}
+            {settings.contact_phone && <p className="font-medium">Contact Number: {settings.contact_phone}</p>}
+            {settings.contact_email && <p className="font-medium">Email: {settings.contact_email}</p>}
           </div>
-          <div className="text-right">
-            <p className="font-semibold">Job Order No.: {jobOrderNo}</p>
+          <div className="text-right shrink-0">
+            <p className="font-bold">Job Order No.: {jobOrderNo}</p>
             {settings.facebook_url && <p className="mb-1">Follow us on Facebook</p>}
             <img src={qrSrc} alt="Scan to visit our website" className="w-16 h-16 ml-auto" />
           </div>
         </div>
 
-        <p className="mt-3">Services: Laptop, Macbook, Cellphone, Printer, Motherboard Level Repair, Chip Level Repair, GPU Repair</p>
+        <p className="mt-2 font-medium">Services: Laptop, Macbook, Cellphone, Printer, Motherboard Level Repair, Chip Level Repair, GPU Repair</p>
 
         <table className="w-full border border-ink mt-2 border-collapse">
           <tbody>
@@ -231,7 +236,7 @@ function Copy({ settings, customer, jobOrderNo, items, total, deposit, balance, 
 
         <p className="mt-2">Warranty: _______________________________________________</p>
 
-        <div className="flex justify-between mt-6">
+        <div className="flex justify-between mt-4">
           <p className="border-t border-ink pt-1 w-40 text-center">Client Signature</p>
           <p className="border-t border-ink pt-1 w-40 text-center">Authorized Signature</p>
         </div>
