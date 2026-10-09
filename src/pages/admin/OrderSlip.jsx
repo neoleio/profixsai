@@ -4,7 +4,6 @@ import { Plus, Minus, Printer, FileInput } from "lucide-react";
 import { useSettings } from "../../lib/useSettings.js";
 import { api } from "../../lib/api.js";
 import { toDateInputValue } from "../../lib/date.js";
-import Logotype from "../../components/site/Logotype.jsx";
 
 // Pure client-side receipt/order-slip builder — nothing here is saved to the
 // database. "Download PDF" opens the browser's print dialog, where choosing
@@ -164,24 +163,20 @@ export default function OrderSlip() {
 
 function Copy({ settings, customer, jobOrderNo, items, total, deposit, balance, qrSrc }) {
   return (
-    <div className="relative isolate p-6 text-[11px] text-ink border-b-2 border-dashed border-ink/20 last:border-b-0">
+    <div className="relative isolate overflow-hidden p-6 text-[11px] text-ink border-b-2 border-dashed border-ink/20 last:border-b-0">
       <img
         src="/assets/logo.png"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 m-auto w-[320px] h-[320px] object-contain opacity-[0.06] pointer-events-none"
+        className="absolute inset-0 m-auto w-[280px] h-[280px] object-contain opacity-[0.12] pointer-events-none"
       />
       <div className="relative z-10">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/assets/logo.png" alt="ProFixSAI logo" className="w-14 h-14 rounded-full object-cover" />
-            <div>
-              <Logotype size="lg" light />
-              <p className="font-semibold uppercase">Computer and Laptop Repair</p>
-              {settings.contact_address && <p>{settings.contact_address}</p>}
-              {settings.contact_phone && <p>Contact Number: {settings.contact_phone}</p>}
-              {settings.contact_email && <p>Email: {settings.contact_email}</p>}
-            </div>
+          <div>
+            <p className="font-semibold uppercase">Computer and Laptop Repair</p>
+            {settings.contact_address && <p>{settings.contact_address}</p>}
+            {settings.contact_phone && <p>Contact Number: {settings.contact_phone}</p>}
+            {settings.contact_email && <p>Email: {settings.contact_email}</p>}
           </div>
           <div className="text-right">
             <p className="font-semibold">Job Order No.: {jobOrderNo}</p>

@@ -78,6 +78,10 @@ body { @apply font-body bg-fog-50 text-ink antialiased; }
   .no-print { display: none !important; }
 }
 
+@page {
+  margin: 0;
+}
+
 @media (max-width: 1023px) {
   .process-step::after {
     display: none;
