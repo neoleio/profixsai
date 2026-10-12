@@ -16,6 +16,17 @@ const MIN_ROWS = 6; // pads the printed table out to a consistent size, like the
 
 const emptyItem = () => ({ qty: "", description: "", amount: "" });
 
+function buildItemDescription(jobOrder, description) {
+  const deviceName = [jobOrder?.brand, jobOrder?.model].filter(Boolean).join(" ").trim();
+  const text = (description || "").trim();
+
+  if (!deviceName) return text;
+  if (!text) return deviceName;
+  if (text.startsWith(deviceName)) return text;
+
+  return `${deviceName} — ${text}`;
+}
+
 export default function OrderSlip() {
   const settings = useSettings();
   const [searchParams] = useSearchParams();
@@ -46,12 +57,12 @@ export default function OrderSlip() {
         if (joItems && joItems.length) {
           setItems(joItems.map((it) => ({
             qty: it.quantity,
-            description: it.part_name,
+            description: buildItemDescription(jobOrder, it.part_name || "Repair service"),
             amount: (Number(it.quantity) * Number(it.unit_cost)).toFixed(2)
           })));
         } else {
           const fallbackAmount = Number(jobOrder.final_cost) || Number(jobOrder.estimated_cost) || 0;
-          setItems([{ qty: 1, description: jobOrder.requested_repair || jobOrder.reported_problem || "Repair service", amount: fallbackAmount || "" }]);
+          setItems([{ qty: 1, description: buildItemDescription(jobOrder, jobOrder.requested_repair || jobOrder.reported_problem || "Repair service"), amount: fallbackAmount || "" }]);
         }
         const paid = (payments || []).reduce((s, p) => s + Number(p.amount), 0);
         if (paid) setDeposit(paid.toFixed(2));
@@ -67,7 +78,7 @@ export default function OrderSlip() {
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, [field]: value } : it)));
   }
   function addItem() {
-    setItems((prev) => [...prev, emptyItem()]);
+    setItems((prev) => [...prev, { ...emptyItem(), description: sourceJobOrder ? buildItemDescription(sourceJobOrder, "") : "" }]);
   }
   function removeItem(i) {
     setItems((prev) => (prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev));
