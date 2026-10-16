@@ -122,9 +122,10 @@ export default function JobOrderDetail() {
 
   return (
     <div className="max-w-3xl">
-      {location.state?.itemsWarning && (
+      {(location.state?.itemsWarning || location.state?.auditWarning) && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg p-4 mb-4">
-          {location.state.itemsWarning} You can add them below and save.
+          {location.state.itemsWarning && <p>{location.state.itemsWarning} You can add them below and save.</p>}
+          {location.state.auditWarning && <p>{location.state.auditWarning}</p>}
         </div>
       )}
       <Link to="/admin/job-orders" className="inline-flex items-center gap-1.5 text-sm font-medium text-ink/50 hover:text-brand-blue transition-colors">

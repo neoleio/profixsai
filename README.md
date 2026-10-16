@@ -105,6 +105,11 @@ and `git push -u origin main`.)
 Any `git push` to your main branch triggers a new Vercel deployment
 automatically — same workflow as your other projects on Vercel.
 
+When updating an existing database, run `db/migration-catch-up-2026-09-20.sql`
+in the Neon SQL Editor before deploying. It adds any missing columns and
+tables used by the current app, including the technician name and job-order
+items fields. The statements are safe to re-run.
+
 ---
 
 ## 5. First login checklist

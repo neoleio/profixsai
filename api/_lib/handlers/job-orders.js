@@ -7,9 +7,18 @@ const STATUSES = ["Received", "Diagnosing", "Waiting for Approval", "Not Repaire
 
 async function generateJobNo() {
   const year = new Date().getFullYear();
-  const rows = await sql`select count(*)::int as count from job_orders where job_no like ${"JO-" + year + "-%"}`;
-  const next = (rows[0].count + 1).toString().padStart(4, "0");
-  return `JO-${year}-${next}`;
+  const prefix = `JO-${year}-`;
+  const rows = await sql`
+    select coalesce(max(substring(job_no from 9)::int), 0)::int as latest
+    from job_orders
+    where job_no ~ ${`^JO-${year}-[0-9]+$`}
+  `;
+  const next = (rows[0].latest + 1).toString().padStart(4, "0");
+  return `${prefix}${next}`;
+}
+
+function isUniqueViolation(err) {
+  return err?.code === "23505";
 }
 
 async function listJobOrders(req, res) {
@@ -46,25 +55,38 @@ async function createJobOrder(req, res) {
   if (!["admin", "staff"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
   const b = req.body || {};
   if (!b.customer_id || !b.device_id) return badRequest(res, "Customer and device are required.");
-
-  const job_no = await generateJobNo();
-  const rows = await sql`
-    insert into job_orders (
-      job_no, customer_id, device_id, reported_problem, diagnosis, requested_repair,
-      parts_required, technician_name, repair_notes, estimated_cost, final_cost, capital_cost, profit,
-      status, payment_status, date_received, expected_completion, warranty_info, created_by
-    ) values (
-      ${job_no}, ${b.customer_id}, ${b.device_id},
-      ${sanitizeText(b.reported_problem, 1000)}, ${sanitizeText(b.diagnosis, 1000)}, ${sanitizeText(b.requested_repair, 1000)},
-      ${sanitizeText(b.parts_required, 1000)}, ${sanitizeText(b.technician_name, 150)}, ${sanitizeText(b.repair_notes, 2000)},
-      ${Number(b.estimated_cost) || 0}, ${Number(b.final_cost) || 0}, ${Number(b.capital_cost) || 0}, ${(Number(b.final_cost) || 0) - (Number(b.capital_cost) || 0)},
-      ${b.status && STATUSES.includes(b.status) ? b.status : "Received"},
-      ${b.payment_status || "Unpaid"}, ${b.date_received || new Date().toISOString().slice(0, 10)},
-      ${b.expected_completion || null}, ${sanitizeText(b.warranty_info, 500)}, ${req.session.sub}
-    )
-    returning *
+  const matchingDevice = await sql`
+    select id from devices where id = ${b.device_id} and customer_id = ${b.customer_id}
   `;
-  const jobOrder = rows[0];
+  if (!matchingDevice[0]) return badRequest(res, "The selected device does not belong to the selected customer.");
+
+  let job_no;
+  let jobOrder;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    job_no = await generateJobNo();
+    try {
+      const rows = await sql`
+        insert into job_orders (
+          job_no, customer_id, device_id, reported_problem, diagnosis, requested_repair,
+          parts_required, technician_name, repair_notes, estimated_cost, final_cost, capital_cost, profit,
+          status, payment_status, date_received, expected_completion, warranty_info, created_by
+        ) values (
+          ${job_no}, ${b.customer_id}, ${b.device_id},
+          ${sanitizeText(b.reported_problem, 1000)}, ${sanitizeText(b.diagnosis, 1000)}, ${sanitizeText(b.requested_repair, 1000)},
+          ${sanitizeText(b.parts_required, 1000)}, ${sanitizeText(b.technician_name, 150)}, ${sanitizeText(b.repair_notes, 2000)},
+          ${Number(b.estimated_cost) || 0}, ${Number(b.final_cost) || 0}, ${Number(b.capital_cost) || 0}, ${(Number(b.final_cost) || 0) - (Number(b.capital_cost) || 0)},
+          ${b.status && STATUSES.includes(b.status) ? b.status : "Received"},
+          ${b.payment_status || "Unpaid"}, ${b.date_received || new Date().toISOString().slice(0, 10)},
+          ${b.expected_completion || null}, ${sanitizeText(b.warranty_info, 500)}, ${req.session.sub}
+        )
+        returning *
+      `;
+      jobOrder = rows[0];
+      break;
+    } catch (err) {
+      if (!isUniqueViolation(err) || attempt === 2) throw err;
+    }
+  }
 
   let itemsWarning = null;
   if (Array.isArray(b.items) && b.items.length) {
@@ -79,8 +101,14 @@ async function createJobOrder(req, res) {
     }
   }
 
-  await logAction({ userId: req.session.sub, action: `Created job order ${job_no}`, entity: "job_orders", entityId: jobOrder.id });
-  res.status(201).json({ jobOrder, itemsWarning });
+  let auditWarning = null;
+  try {
+    await logAction({ userId: req.session.sub, action: `Created job order ${job_no}`, entity: "job_orders", entityId: jobOrder.id });
+  } catch (err) {
+    console.error("Error auditing job order creation:", err);
+    auditWarning = "The job order was created, but its audit entry couldn't be saved.";
+  }
+  res.status(201).json({ jobOrder, itemsWarning, auditWarning });
 }
 
 // Shared by create and the items sub-route: full replace (delete + re-insert)

@@ -33,6 +33,7 @@ export default function NewJobOrder() {
   const [items, setItems] = useState([emptyItem()]);
 
   const [error, setError] = useState("");
+  const [lookupError, setLookupError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   // Arriving from a "Book a Repair" lead: pre-fill everything we already
@@ -77,24 +78,39 @@ export default function NewJobOrder() {
   }
 
   useEffect(() => {
+    let active = true;
     const handle = setTimeout(() => {
       if (customerQuery.trim()) {
-        api.get(`/customers?q=${encodeURIComponent(customerQuery)}`).then(({ customers }) => setCustomers(customers)).catch(() => {});
+        api.get(`/customers?q=${encodeURIComponent(customerQuery)}`)
+          .then(({ customers }) => { if (active) setCustomers(customers); })
+          .catch((err) => { if (active) setLookupError(`Customer search failed: ${err.message}`); });
       } else {
         setCustomers([]);
+        setLookupError("");
       }
     }, 300);
-    return () => clearTimeout(handle);
+    return () => {
+      active = false;
+      clearTimeout(handle);
+    };
   }, [customerQuery]);
 
   useEffect(() => {
-    if (!customerId) { setDevices([]); return; }
-    api.get(`/customers?id=${customerId}`).then(({ devices }) => setDevices(devices)).catch(() => {});
+    let active = true;
+    if (!customerId) {
+      setDevices([]);
+      return () => { active = false; };
+    }
+    api.get(`/customers?id=${customerId}`)
+      .then(({ devices }) => { if (active) setDevices(devices); })
+      .catch((err) => { if (active) setLookupError(`Loading this customer's devices failed: ${err.message}`); });
+    return () => { active = false; };
   }, [customerId]);
 
   async function onSubmit(e) {
     e.preventDefault();
     setError("");
+    setLookupError("");
     setSubmitting(true);
     try {
       let finalCustomerId = customerId;
@@ -104,15 +120,22 @@ export default function NewJobOrder() {
         }
         const { customer } = await api.post("/customers", newCustomer);
         finalCustomerId = customer.id;
+        setCustomerId(customer.id);
+        setCustomerQuery(customer.full_name);
+        setCustomers([]);
+        setAddingCustomer(false);
       }
 
       let finalDeviceId = deviceId;
       if (addingDevice || !deviceId) {
         const { device } = await api.post("/devices", { ...newDevice, customer_id: finalCustomerId });
         finalDeviceId = device.id;
+        setDeviceId(device.id);
+        setDevices((current) => [...current.filter((item) => item.id !== device.id), device]);
+        setAddingDevice(false);
       }
 
-      const { jobOrder, itemsWarning } = await api.post("/job-orders", {
+      const { jobOrder, itemsWarning, auditWarning } = await api.post("/job-orders", {
         customer_id: finalCustomerId,
         device_id: finalDeviceId,
         ...repair,
@@ -125,7 +148,7 @@ export default function NewJobOrder() {
         api.put(`/repair-requests?id=${sourceRequest.id}`, { status: "Converted" }).catch(() => {});
       }
 
-      navigate(`/admin/job-orders/${jobOrder.id}`, { state: { itemsWarning } });
+      navigate(`/admin/job-orders/${jobOrder.id}`, { state: { itemsWarning, auditWarning } });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -155,6 +178,8 @@ export default function NewJobOrder() {
         </div>
       )}
 
+      {lookupError && <p className="mt-4 text-sm text-brand-red" role="alert">{lookupError}</p>}
+
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-8">
         {/* Customer */}
         <section className="card p-6">
@@ -165,13 +190,19 @@ export default function NewJobOrder() {
                 className="input"
                 placeholder="Search existing customer by name, phone, or email"
                 value={customerQuery}
-                onChange={(e) => { setCustomerQuery(e.target.value); setCustomerId(""); }}
+                onChange={(e) => {
+                  setCustomerQuery(e.target.value);
+                  setCustomerId("");
+                  setDeviceId("");
+                  setDevices([]);
+                  setAddingDevice(false);
+                }}
               />
               {customers.length > 0 && !customerId && (
                 <ul className="mt-2 border border-ink/10 rounded-lg divide-y divide-ink/5 max-h-48 overflow-y-auto">
                   {customers.map((c) => (
                     <li key={c.id}>
-                      <button type="button" onClick={() => { setCustomerId(c.id); setCustomerQuery(c.full_name); setCustomers([]); }}
+                      <button type="button" onClick={() => { setCustomerId(c.id); setCustomerQuery(c.full_name); setCustomers([]); setDeviceId(""); setDevices([]); setAddingDevice(false); }}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-fog-50">
                         {c.full_name} — {c.contact_number}
                       </button>
@@ -180,7 +211,7 @@ export default function NewJobOrder() {
                 </ul>
               )}
               {customerId && <p className="text-sm text-emerald-600 mt-2">Selected: {customerQuery}</p>}
-              <button type="button" className="text-sm text-brand-blue font-semibold mt-3" onClick={() => { setAddingCustomer(true); setCustomerId(""); }}>
+              <button type="button" className="text-sm text-brand-blue font-semibold mt-3" onClick={() => { setAddingCustomer(true); setCustomerId(""); setDeviceId(""); setDevices([]); setAddingDevice(false); }}>
                 + Add new customer instead
               </button>
             </>

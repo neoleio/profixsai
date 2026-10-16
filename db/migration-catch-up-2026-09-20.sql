@@ -7,8 +7,18 @@
 -- 1) Job Order cost fields (capital cost / profit, discount removed)
 alter table job_orders add column if not exists capital_cost numeric(10,2) default 0;
 alter table job_orders add column if not exists profit numeric(10,2) default 0;
+alter table job_orders add column if not exists technician_name text;
 update job_orders set profit = final_cost - capital_cost where profit = 0;
 alter table job_orders drop column if exists discount;
+
+-- Job order line items
+create table if not exists job_order_items (
+  id uuid primary key default gen_random_uuid(),
+  job_order_id uuid not null references job_orders(id) on delete cascade,
+  part_name text not null,
+  quantity int not null default 1,
+  unit_cost numeric(10,2) not null default 0
+);
 
 -- 2) Service photos
 alter table services add column if not exists image_url text;
@@ -35,3 +45,14 @@ where not exists (select 1 from hero_slides);
 
 -- 4) Preferred date on "Book a Repair" leads
 alter table repair_requests add column if not exists preferred_date date;
+
+-- 5) Public feedback / reviews
+create table if not exists feedback (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null,
+  email text,
+  rating int,
+  message text not null,
+  status text not null default 'New',
+  created_at timestamptz not null default now()
+);
