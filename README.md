@@ -1,208 +1,229 @@
 # ProFixSAI — Gadget Repair Management System
 
-A full-stack repair shop website + admin system:
+ProFixSAI is a full-stack web application for managing a gadget repair shop. It provides a public website for customers and an administrative system for handling repair requests, job orders, customers, devices, payments, and shop information.
 
-- **Public site**: Home, Services, About, Repair Process, Contact, Book a Repair
-- **Admin system**: job orders, customers, devices, services, users, payments,
-  audit log, site settings — with role-based access (Administrator / Staff / Technician)
-- **Stack**: React + Vite (frontend), Vercel Serverless Functions (backend API),
-  Postgres on **Neon** (database), deployed on **Vercel**
+## Features
 
----
+### Public Website
+- Home, Services, About, and Repair Process pages
+- Contact information and social media links
+- Online repair request submission
+- Customizable website content, colors, and announcements
 
-## 1. Why a new database (not Supabase)
+### Admin System
+- Dashboard and reports
+- Repair requests and customer messages
+- Job order creation, tracking, and management
+- Customer and device records with repair history
+- Service catalog management
+- Payment recording, warranty information, and printable order slips
+- User management with role-based access
+- Audit logs for important administrative actions
+- Built-in help guide with role-based content
 
-You mentioned your two Supabase free-tier project slots are already used by
-`banahaw-spa` and `lark-paper-products`. Supabase's free plan caps you at 2
-active projects, so this project uses **[Neon](https://neon.tech)** instead —
-a separate serverless Postgres provider with its own free tier:
+### User Roles
+- **Administrator** — manages users, system settings, and administrative functions
+- **Staff** — handles supported customer service and repair management tasks
+- **Technician** — accesses functions permitted for repair-related work
 
-- 1 free project, 0.5 GB storage, that's completely independent of your
-  Supabase account/limits
-- Same Postgres under the hood, so the SQL in `db/schema.sql` works unchanged
-- A connection string that plugs into the same `DATABASE_URL` pattern you're
-  already used to
+Access to administrative functions is enforced by the backend according to the user's role.
 
-You are not required to use Neon specifically — any Postgres host works
-(Railway, Fly Postgres, ElephantSQL, your own VPS). The setup steps below are
-for Neon because it's the closest free-tier match to what you already use.
+## Technology Stack
 
----
+| Component | Technology |
+|---|---|
+| Frontend | React, Vite |
+| Backend | Vercel Serverless Functions |
+| Database | PostgreSQL |
+| Database Hosting | Neon |
+| Deployment | Vercel |
+| Source Control | Git and GitHub |
 
-## 2. Set up the database (Neon)
+## Project Structure
 
-1. Go to **https://neon.tech** and sign up (GitHub login is fastest).
-2. Click **New Project**. Name it `profixsai`, pick a region close to your
-   users (e.g. Singapore for PH), and create it.
-3. Neon shows you a **connection string** right after creation, something like:
-   ```
-   postgresql://neondb_owner:AbCdEf123@ep-cool-fire-12345.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
-   ```
-   Copy this — it's your `DATABASE_URL`. (If you navigate away, find it again
-   under **Dashboard → Connection Details**.)
-4. Open the **SQL Editor** in the Neon dashboard (left sidebar).
-5. Open `db/schema.sql` from this project, copy its entire contents, paste it
-   into the SQL Editor, and click **Run**. This creates all tables (users,
-   customers, devices, job_orders, payments, services, audit_logs, etc.).
-6. Seed an admin account and the default services list. On your own computer
-   (not in the Neon dashboard), with Node.js installed:
-   ```bash
-   cd profixsai
-   npm install
-   DATABASE_URL="paste-your-neon-connection-string-here" npm run seed
-   ```
-   This prints something like:
-   ```
-   Admin login -> email: admin@profixsai.local  password: ChangeMe123!
-   ```
-   **Log in and change this password immediately after your first deploy** —
-   there's no "change password" screen yet, so for now, change it directly in
-   Neon's SQL Editor:
-   ```sql
-   -- generate a new hash locally first (see note below), then:
-   update users set password_hash = 'paste-new-bcrypt-hash' where email = 'admin@profixsai.local';
-   ```
-   Easiest path: temporarily add a "create user" step by running the app,
-   logging in with the seeded account, and using **Admin → Users → Add User**
-   to create your real admin account — then deactivate the seeded one.
+```text
+profixsai/
+├── api/
+│   ├── _lib/              # Shared database, authentication, and audit helpers
+│   ├── auth/              # Authentication and session endpoints
+│   ├── job-orders/        # Job order management
+│   ├── customers/         # Customer records and history
+│   ├── devices/           # Device records and history
+│   ├── services/          # Service catalog
+│   ├── users/             # User management
+│   ├── audit-logs/        # Audit trail
+│   ├── settings/          # Website settings
+│   └── public/            # Public repair request endpoints
+├── db/
+│   ├── schema.sql         # Database schema
+│   └── seed.js            # Initial data setup
+├── src/
+│   ├── pages/
+│   │   ├── site/          # Public website pages
+│   │   └── admin/         # Administrative pages
+│   ├── components/        # Reusable UI components
+│   └── lib/               # API client and shared utilities
+└── public/
+    └── assets/            # Public images and other assets
+```
 
----
+## Getting Started
 
-## 3. Push the code to GitHub
+### Prerequisites
+
+Before setting up the project, install or prepare the following:
+
+- [Node.js](https://nodejs.org/) and npm
+- [Git](https://git-scm.com/)
+- A [Neon](https://neon.tech/) PostgreSQL database, or another compatible PostgreSQL host
+- A [GitHub](https://github.com/) account
+- A [Vercel](https://vercel.com/) account for deployment
+
+### 1. Clone the Repository
+
+Replace the repository URL below with the URL of your GitHub repository.
 
 ```bash
+git clone <your-repository-url>
 cd profixsai
-git init
-git add .
-git commit -m "Initial ProFixSAI build"
-gh repo create neoleio/profixsai --public --source=. --push
-```
-(No GitHub CLI? Create the repo at github.com/new, then `git remote add origin <url>`
-and `git push -u origin main`.)
-
----
-
-## 4. Deploy to Vercel
-
-1. Go to **https://vercel.com**, sign in with GitHub.
-2. Click **Add New → Project**, select the `profixsai` repo.
-3. Vercel auto-detects Vite. Leave build settings as default
-   (`npm run build`, output directory `dist`).
-4. Before clicking Deploy, open **Environment Variables** and add:
-
-   | Name | Value |
-   |---|---|
-   | `DATABASE_URL` | your Neon connection string from step 2 |
-   | `JWT_SECRET` | a long random string — generate one with `openssl rand -hex 32` |
-   | `COOKIE_SECURE` | `true` |
-
-5. Click **Deploy**. Vercel builds the frontend and deploys every file under
-   `api/` as a serverless function automatically.
-6. Once deployed, visit `your-project.vercel.app` for the public site, and
-   `your-project.vercel.app/admin/login` for the staff login.
-
-### Redeploying after changes
-Any `git push` to your main branch triggers a new Vercel deployment
-automatically — same workflow as your other projects on Vercel.
-
-When updating an existing database, run `db/migration-catch-up-2026-09-20.sql`
-in the Neon SQL Editor before deploying. It adds any missing columns and
-tables used by the current app, including the technician name and job-order
-items fields. The statements are safe to re-run.
-
----
-
-## 5. First login checklist
-
-1. Go to `/admin/login`, sign in with the seeded admin account.
-2. Go to **Settings** and fill in your real Facebook URL, YouTube URL, phone,
-   email, and shop address — these appear immediately on the public site's
-   navbar, footer, and Contact page.
-3. Go to **Users**, create your real named admin account, then deactivate
-   (don't delete) `admin@profixsai.local`.
-4. Go to **Services** to edit, add, or hide any of the seeded services.
-5. Create your first real job order under **Job Orders → New Job Order**.
-
----
-
-## 6. Project structure
-
-```
-profixsai/
-├── api/                  # Vercel serverless functions (the backend)
-│   ├── _lib/             # shared db/auth/audit helpers
-│   ├── auth/             # login, logout, session check
-│   ├── job-orders/       # job order CRUD, status, payments
-│   ├── customers/        # customer CRUD + history
-│   ├── devices/          # device CRUD + history
-│   ├── services/         # public service catalog + admin CRUD
-│   ├── users/            # admin user management
-│   ├── audit-logs/       # audit trail
-│   ├── settings/         # editable site content
-│   └── public/           # public "Book a Repair" lead form
-├── db/
-│   ├── schema.sql        # run this once in Neon's SQL editor
-│   └── seed.js           # creates default services + admin login
-├── src/
-│   ├── pages/site/       # public marketing pages
-│   ├── pages/admin/      # admin dashboard pages
-│   ├── components/       # shared UI
-│   └── lib/              # API client, auth context, settings hook
-└── public/assets/        # logo + hero photo
+npm install
 ```
 
----
+### 2. Configure the Database
 
-## 7. What's intentionally left for later
+1. Create a PostgreSQL database.
+2. Open the database's SQL editor.
+3. Execute the contents of `db/schema.sql` to create the required tables.
+4. Keep the database connection string available for local setup and deployment.
 
-Per the original spec's "future-ready" section, these are structured for but
-not built yet, so the system stays simple to operate today:
+The connection string should be assigned to the `DATABASE_URL` environment variable. Do not commit the connection string to GitHub.
 
-- Online payment gateway (payments are currently recorded manually by staff)
-- SMS/email notifications on status changes
-- QR-code job orders / receipt verification
+If you are updating an existing database, review the applicable migration scripts before deploying the updated application. For installations that require the existing catch-up migration, run `db/migration-catch-up-2026-09-20.sql` in the database SQL editor. Back up important data before applying migrations to a production database.
+
+### 3. Configure Environment Variables
+
+Configure the following environment variables in your local environment and Vercel project settings.
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `JWT_SECRET` | Secret used to sign authentication tokens |
+| `COOKIE_SECURE` | Controls whether authentication cookies require HTTPS |
+
+For production, use a strong, randomly generated `JWT_SECRET` and set `COOKIE_SECURE` to `true` when serving the application over HTTPS.
+
+Generate a secret locally with:
+
+```bash
+openssl rand -hex 32
+```
+
+Never commit real environment values to the repository. Use the project's existing environment-variable loading approach for local development, and configure production values in Vercel.
+
+### 4. Initialize the Application
+
+Run the project's seed script to initialize the default services and initial administrator account:
+
+```bash
+npm run seed
+```
+
+Ensure `DATABASE_URL` is configured in the terminal before running the script. Follow any initialization instructions printed by the script.
+
+**Security:** Keep any initial login credentials private. If the seed script generates or displays a default password, do not publish it in the README or source code. Use the application's supported user-management workflow to establish a permanent administrator account, then deactivate the initial account when appropriate.
+
+### 5. Run Locally
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Vite will display the local development URL in the terminal.
+
+To verify that the production frontend builds successfully, run:
+
+```bash
+npm run build
+```
+
+The Vercel deployment configuration handles the backend API separately from the local Vite development server. Follow the project's API and database configuration when testing backend functionality locally.
+
+## Deployment on Vercel
+
+1. Push the project to a GitHub repository.
+2. Sign in to [Vercel](https://vercel.com/) and import the repository.
+3. Verify the build command and output directory against the project's configuration. For a standard Vite build, these are typically `npm run build` and `dist`.
+4. Add `DATABASE_URL`, `JWT_SECRET`, and `COOKIE_SECURE` under the project's environment variables.
+5. Deploy the application.
+6. Test the public website, administrator login, database operations, and role-based access after deployment.
+
+The public website and administrative interface are served by the deployed application. The admin login route is `/admin/login`, subject to the configured routing.
+
+Subsequent pushes to the connected deployment branch can trigger automatic deployments.
+
+## Website Customization
+
+Administrators can manage the public website through **Admin → Settings**.
+
+### General
+- Contact details and social media links
+- Operating hours
+- Homepage slides
+
+### Page Text & Colors
+- Edit supported text throughout the public pages
+- Configure text, background, highlight, and button colors
+- Save changes before publishing the updated settings
+
+### Added Text
+- Add announcements, notices, and promotional content
+- Choose the target page or display content across pages
+- Configure placement, alignment, and colors
+- Show or hide content without deleting it
+
+The editable content definitions are maintained in `src/lib/siteContent.js`, with text rendered through `src/components/site/T.jsx`. Settings use the existing `system_settings` database table.
+
+## Built-in Admin Help
+
+The administrative help guide is available at `/admin/help`.
+
+It includes categorized guidance for job orders, repair requests, customers, devices, payments, warranties, reports, website settings, user management, and troubleshooting.
+
+Help content is maintained in `src/lib/helpContent.js`. Available topics are filtered according to the signed-in user's role.
+
+## Security
+
+ProFixSAI includes the following security-related controls:
+
+- Password hashing with bcrypt
+- JWT-based authentication using `httpOnly` cookies
+- Server-side role checks on administrative API routes
+- Temporary account lockout after repeated failed login attempts
+- Audit logging for important create, update, and delete operations
+
+These controls help protect the application but do not eliminate every security risk. Keep dependencies updated, protect production secrets, enforce HTTPS, and test access controls before using the system with real customer data.
+
+Never commit `.env` files, database credentials, authentication secrets, real customer records, or production data to the repository.
+
+## Planned Enhancements
+
+The following features are not currently implemented as complete system features:
+
+- Online payment gateway integration
+- SMS and email notifications for repair status updates
+- QR-code-based job order or receipt verification
 - Customer-facing repair tracking portal
 - Parts inventory and stock management
-- Fine-grained permissions table (the app currently uses 3 fixed roles —
-  Administrator, Staff, Technician — enforced on every API route)
+- Configurable, fine-grained permissions beyond the existing role-based access model
 
-## 8. Security notes
+These features may be considered for future development.
 
-- Passwords are hashed with bcrypt, never stored in plain text.
-- Sessions are signed JWTs in an `httpOnly`, `Secure` cookie — not accessible
-  to JavaScript, so they aren't a target for XSS.
-- Every admin API route re-checks the user's role server-side — hiding a
-  button in the UI is never the only protection.
-- Accounts lock for 15 minutes after 5 failed login attempts.
-- Every create/update/delete that matters is written to `audit_logs`.
-- Change `JWT_SECRET` to your own long random value before going live —
-  don't reuse the placeholder in `.env.example`.
+## License
+
+No license has been specified yet. Unless a license is added to the repository, reuse, redistribution, and modification are not automatically granted by this README.
 
 ---
 
-## Editing the public site from Admin → Settings
-
-Settings now has three tabs (administrators only):
-
-- **General** — contact details, social links, operating hours, homepage slides.
-- **Page Text & Colors** — every piece of wording on the public site (header, footer, Home,
-  Services, About, Repair Process, Contact, Book a Repair), each with an optional **text color**
-  and **background/highlight color**. Buttons take a button color; whole sections (hero, header,
-  footer, bands) take a background color. Nothing changes until **Save changes** is pressed.
-- **Added Text** — create extra text blocks (announcements, notices, promos): choose the page
-  (or every page), top/bottom placement, alignment, and colors; hide/show without deleting.
-
-**How it works (no database migration needed):** overrides are stored in the existing
-`system_settings` table as `<id>`, `<id>__color`, `<id>__bg`, plus one `custom_blocks` JSON value.
-The list of editable items lives in `src/lib/siteContent.js` — to make a *new* piece of public
-text editable, add one line there and render it with `<T id="your_id" />`
-(`src/components/site/T.jsx`). No new serverless function is required, so the Vercel Hobby
-12-function limit is unaffected.
-
-## Help & Support (admin)
-
-`/admin/help` — a categorized, searchable guide (Getting Started, Repair Requests & Messages,
-Job Orders, Customers & Devices, Payments/Warranty/Order Slips, Dashboard & Reports, Managing the
-Public Website, Users & Security, Troubleshooting). Topics are filtered by the signed-in role. A
-floating **Help** button on every admin screen opens the category for the page you're on.
-Content is plain data in `src/lib/helpContent.js`.
+**ProFixSAI** — A web-based management system for gadget repair operations.
