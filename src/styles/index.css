@@ -5,6 +5,38 @@
 html { scroll-behavior: smooth; }
 body { @apply font-body bg-fog-50 text-ink antialiased; }
 
+@media (hover: hover) and (pointer: fine) {
+  html,
+  body,
+  body * {
+    cursor: none !important;
+  }
+
+  .sword-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    width: 42px;
+    height: 42px;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .sword-cursor.is-visible {
+    opacity: 1;
+  }
+
+  .sword-cursor__art {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: 34px 5px;
+    filter: drop-shadow(0 1px 1px rgb(15 23 42 / 25%));
+  }
+}
+
 /* Light, engaging site-wide background for the public pages — soft cool-to-warm
    diagonal wash so it feels alive without competing with content. */
 .bg-site-gradient {
