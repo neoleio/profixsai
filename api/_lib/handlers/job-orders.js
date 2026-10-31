@@ -3,7 +3,17 @@ import { getSessionFromRequest } from "../auth.js";
 import { logAction } from "../audit.js";
 import { badRequest, methodNotAllowed, sanitizeText } from "../http.js";
 
-const STATUSES = ["Received", "Diagnosing", "Waiting for Approval", "Not Repaired", "Completed", "Released"];
+const JOB_ORDER_STATUSES = [
+  "Received",
+  "Diagnosing",
+  "Waiting for Approval",
+  "Repairing",
+  "Quality Check",
+  "Not Repaired",
+  "Completed",
+  "Released"
+];
+const PAYMENT_STATUSES = ["Unpaid", "Partial", "Paid"];
 
 async function generateJobNo() {
   const year = new Date().getFullYear();
@@ -48,13 +58,17 @@ async function listJobOrders(req, res) {
   if (date_to) rows = rows.filter((r) => r.date_received <= date_to);
   if (req.session.role === "technician") rows = rows.filter((r) => r.technician_id === req.session.sub);
 
-  res.status(200).json({ jobOrders: rows, statuses: STATUSES });
+  res.status(200).json({ jobOrders: rows, statuses: JOB_ORDER_STATUSES });
 }
 
 async function createJobOrder(req, res) {
   if (!["admin", "staff"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
   const b = req.body || {};
   if (!b.customer_id || !b.device_id) return badRequest(res, "Customer and device are required.");
+
+  const safeStatus = b.status && JOB_ORDER_STATUSES.includes(b.status) ? b.status : "Received";
+  const safePaymentStatus = b.payment_status && PAYMENT_STATUSES.includes(b.payment_status) ? b.payment_status : "Unpaid";
+
   const matchingDevice = await sql`
     select id from devices where id = ${b.device_id} and customer_id = ${b.customer_id}
   `;
@@ -75,8 +89,8 @@ async function createJobOrder(req, res) {
           ${sanitizeText(b.reported_problem, 1000)}, ${sanitizeText(b.diagnosis, 1000)}, ${sanitizeText(b.requested_repair, 1000)},
           ${sanitizeText(b.parts_required, 1000)}, ${sanitizeText(b.technician_name, 150)}, ${sanitizeText(b.repair_notes, 2000)},
           ${Number(b.estimated_cost) || 0}, ${Number(b.final_cost) || 0}, ${Number(b.capital_cost) || 0}, ${(Number(b.final_cost) || 0) - (Number(b.capital_cost) || 0)},
-          ${b.status && STATUSES.includes(b.status) ? b.status : "Received"},
-          ${b.payment_status || "Unpaid"}, ${b.date_received || new Date().toISOString().slice(0, 10)},
+          ${safeStatus},
+          ${safePaymentStatus}, ${b.date_received || new Date().toISOString().slice(0, 10)},
           ${b.expected_completion || null}, ${sanitizeText(b.warranty_info, 500)}, ${req.session.sub}
         )
         returning *
@@ -160,6 +174,18 @@ async function updateJobOrder(req, res, id) {
   const b = req.body || {};
   const isTechnician = req.session.role === "technician";
 
+  const requestedStatus = b.status !== undefined && b.status !== null && b.status !== "" ? String(b.status) : null;
+  if (requestedStatus && !JOB_ORDER_STATUSES.includes(requestedStatus)) {
+    return badRequest(res, "Invalid job order status.");
+  }
+
+  const requestedPaymentStatus = !isTechnician && b.payment_status !== undefined && b.payment_status !== null && b.payment_status !== ""
+    ? String(b.payment_status)
+    : null;
+  if (requestedPaymentStatus && !PAYMENT_STATUSES.includes(requestedPaymentStatus)) {
+    return badRequest(res, "Invalid payment status.");
+  }
+
   const finalCost = !isTechnician && b.final_cost !== undefined ? Number(b.final_cost) : null;
   const capitalCost = !isTechnician && b.capital_cost !== undefined ? Number(b.capital_cost) : null;
 
@@ -167,7 +193,7 @@ async function updateJobOrder(req, res, id) {
     update job_orders set
       diagnosis = coalesce(${b.diagnosis !== undefined ? sanitizeText(b.diagnosis, 1000) : null}, diagnosis),
       repair_notes = coalesce(${b.repair_notes !== undefined ? sanitizeText(b.repair_notes, 2000) : null}, repair_notes),
-      status = coalesce(${b.status || null}, status),
+      status = coalesce(${requestedStatus}, status),
       reported_problem = coalesce(${!isTechnician && b.reported_problem !== undefined ? sanitizeText(b.reported_problem, 1000) : null}, reported_problem),
       requested_repair = coalesce(${!isTechnician && b.requested_repair !== undefined ? sanitizeText(b.requested_repair, 1000) : null}, requested_repair),
       parts_required = coalesce(${!isTechnician && b.parts_required !== undefined ? sanitizeText(b.parts_required, 1000) : null}, parts_required),
@@ -176,10 +202,10 @@ async function updateJobOrder(req, res, id) {
       final_cost = coalesce(${finalCost}, final_cost),
       capital_cost = coalesce(${capitalCost}, capital_cost),
       profit = coalesce(${finalCost}, final_cost) - coalesce(${capitalCost}, capital_cost),
-      payment_status = coalesce(${!isTechnician ? (b.payment_status || null) : null}, payment_status),
+      payment_status = coalesce(${requestedPaymentStatus}, payment_status),
       expected_completion = coalesce(${!isTechnician ? (b.expected_completion || null) : null}, expected_completion),
       warranty_info = coalesce(${!isTechnician && b.warranty_info !== undefined ? sanitizeText(b.warranty_info, 500) : null}, warranty_info),
-      released_at = case when ${b.status || null} = 'Released' then coalesce(released_at, current_date) else released_at end,
+      released_at = case when ${requestedStatus} = 'Released' then coalesce(released_at, current_date) else released_at end,
       updated_at = now()
     where id = ${id}
     returning *
@@ -199,7 +225,7 @@ async function deleteJobOrder(req, res, id) {
 
 async function updateStatus(req, res, id) {
   const { status } = req.body || {};
-  if (!STATUSES.includes(status)) return badRequest(res, "Invalid status.");
+  if (!JOB_ORDER_STATUSES.includes(status)) return badRequest(res, "Invalid status.");
   const existing = await sql`select technician_id from job_orders where id = ${id}`;
   if (!existing[0]) return res.status(404).json({ error: "Job order not found." });
   if (req.session.role === "technician" && existing[0].technician_id !== req.session.sub) {
