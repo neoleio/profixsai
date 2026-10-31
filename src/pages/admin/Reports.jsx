@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 import { Download, ShieldCheck, ArrowLeft } from "lucide-react";
 import { api } from "../../lib/api.js";
 import StatusBadge from "../../components/admin/StatusBadge.jsx";
@@ -104,13 +104,13 @@ export default function Reports() {
         <div className="card p-6">
           <div style={{ width: "100%", height: 260 }}>
             <ResponsiveContainer>
-              <BarChart data={revenue}>
+              <LineChart data={revenue}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E9F0" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip formatter={(v) => `₱${Number(v).toFixed(2)}`} />
-                <Bar dataKey="total" fill="#2F80ED" radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <Line type="monotone" dataKey="total" stroke="#2F80ED" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+              </LineChart>
             </ResponsiveContainer>
           </div>
           {revenue.length === 0 && <p className="text-center text-ink/40 text-sm mt-4">No payments recorded yet.</p>}
