@@ -5,6 +5,12 @@
 html { scroll-behavior: smooth; }
 body { @apply font-body bg-fog-50 text-ink antialiased; }
 
+.admin-content { @apply text-[15px] leading-relaxed; }
+.admin-content .text-xs { @apply text-[13px] leading-5; }
+.admin-content .text-sm { @apply text-[15px] leading-6; }
+.admin-content .text-ink\/40 { @apply text-ink/60; }
+.admin-content .text-ink\/50 { @apply text-ink/70; }
+
 @media (hover: hover) and (pointer: fine) {
   html,
   body,
@@ -102,7 +108,7 @@ body { @apply font-body bg-fog-50 text-ink antialiased; }
 
 .card { @apply bg-white rounded-card border border-ink/10 shadow-[0_1px_2px_rgba(15,23,42,0.06)]; }
 
-.input { @apply w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/40 focus:border-brand-blue; }
+.input { @apply w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-base bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue/40 focus:border-brand-blue; }
 .select-sm { @apply rounded-md border border-ink/15 px-2 py-1 text-xs bg-white w-auto focus:outline-none focus:ring-2 focus:ring-brand-blue/40 focus:border-brand-blue; }
 .label-sm { @apply text-xs font-medium text-ink/50; }
 

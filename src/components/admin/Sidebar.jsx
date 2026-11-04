@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard, ClipboardList, Users, Smartphone, Wrench,
-  HardHat, CreditCard, ShieldCheck, BarChart3, UserCog, History, Settings, LogOut, Inbox, MessageSquare, Receipt, LifeBuoy
+  LayoutDashboard, ClipboardList, Wrench,
+  BarChart3, UserCog, Settings, LogOut, Inbox, MessageSquare, Receipt, LifeBuoy
 } from "lucide-react";
 import { useAuth } from "../../lib/auth-context.jsx";
 import { useNewRequestsCount } from "../../lib/useNewRequestsCount.js";
@@ -13,13 +13,10 @@ const ITEMS = [
   { to: "/admin/repair-requests", label: "Repair Requests", icon: Inbox, roles: ["admin", "staff"], notify: "requests" },
   { to: "/admin/messages", label: "Messages", icon: MessageSquare, roles: ["admin", "staff"], notify: "messages" },
   { to: "/admin/job-orders", label: "Job Orders", icon: ClipboardList, roles: ["admin", "staff", "technician"] },
-  { to: "/admin/customers", label: "Customers", icon: Users, roles: ["admin", "staff"] },
-  { to: "/admin/devices", label: "Devices", icon: Smartphone, roles: ["admin", "staff", "technician"] },
   { to: "/admin/services", label: "Services", icon: Wrench, roles: ["admin"] },
   { to: "/admin/order-slip", label: "Order Slip", icon: Receipt, roles: ["admin", "staff"] },
   { to: "/admin/reports", label: "Reports", icon: BarChart3, roles: ["admin", "staff"] },
   { to: "/admin/users", label: "Users", icon: UserCog, roles: ["admin"] },
-  { to: "/admin/audit-logs", label: "Audit Logs", icon: History, roles: ["admin"] },
   { to: "/admin/settings", label: "Settings", icon: Settings, roles: ["admin"] }
 ];
 
@@ -32,12 +29,12 @@ export default function Sidebar({ onNavigate }) {
   const notifyCounts = { requests: newRequestsCount, messages: newMessagesCount };
 
   return (
-    <div className="flex flex-col h-full bg-ink text-white/80">
+    <div className="flex flex-col h-full bg-ink text-white/90">
       <div className="px-5 py-5 border-b border-white/10 flex items-center gap-2.5">
         <img src="/assets/logo.png" alt="ProFixSAI logo" className="w-8 h-8 rounded-full object-cover" />
         <div>
           <Logotype size="base" className="leading-none" />
-          <p className="text-xs text-white/40 mt-0.5">Repair Management</p>
+          <p className="text-xs text-white/70 mt-0.5">Repair Management</p>
         </div>
       </div>
       <nav className="flex-1 py-4 px-3 flex flex-col gap-1 overflow-y-auto">
@@ -50,7 +47,7 @@ export default function Sidebar({ onNavigate }) {
               end={end}
               onClick={onNavigate}
               className={({ isActive }) =>
-                `relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                `relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${
                   isActive
                     ? "bg-white/10 text-white before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-r-full before:bg-brand-red"
                     : "hover:bg-white/5 hover:text-white"
@@ -87,10 +84,10 @@ export default function Sidebar({ onNavigate }) {
         </NavLink>
       </div>
       <div className="px-5 py-4 border-t border-white/10">
-        <p className="text-xs text-white/40">Signed in as</p>
+        <p className="text-xs text-white/70">Signed in as</p>
         <p className="text-sm font-medium text-white">{user?.name}</p>
-        <p className="text-xs text-white/40 capitalize">{user?.role}</p>
-        <button onClick={logout} className="mt-3 flex items-center gap-2 text-sm text-white/70 hover:text-white">
+        <p className="text-xs text-white/70 capitalize">{user?.role}</p>
+        <button onClick={logout} className="mt-3 flex items-center gap-2 text-base text-white/90 hover:text-white">
           <LogOut size={15} /> Log out
         </button>
       </div>

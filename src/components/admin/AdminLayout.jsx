@@ -97,7 +97,7 @@ export default function AdminLayout() {
             <button onClick={() => setOpen((v) => !v)}>{open ? <X /> : <Menu />}</button>
           </div>
         </div>
-        <main className="relative z-10 p-5 sm:p-8 max-w-6xl mx-auto">
+        <main className="admin-content relative z-10 p-5 sm:p-8 max-w-6xl mx-auto">
           <PageFade pageKey={location.pathname}>
             <Outlet />
           </PageFade>
