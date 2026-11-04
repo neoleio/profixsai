@@ -62,12 +62,13 @@ async function listJobOrders(req, res) {
 }
 
 async function createJobOrder(req, res) {
-  if (!["admin", "staff"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
+  if (!["admin", "staff", "technician"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
   const b = req.body || {};
+  const isTechnician = req.session.role === "technician";
   if (!b.customer_id || !b.device_id) return badRequest(res, "Customer and device are required.");
 
-  const safeStatus = b.status && JOB_ORDER_STATUSES.includes(b.status) ? b.status : "Received";
-  const safePaymentStatus = b.payment_status && PAYMENT_STATUSES.includes(b.payment_status) ? b.payment_status : "Unpaid";
+  const safeStatus = !isTechnician && b.status && JOB_ORDER_STATUSES.includes(b.status) ? b.status : "Received";
+  const safePaymentStatus = !isTechnician && b.payment_status && PAYMENT_STATUSES.includes(b.payment_status) ? b.payment_status : "Unpaid";
 
   const matchingDevice = await sql`
     select id from devices where id = ${b.device_id} and customer_id = ${b.customer_id}
@@ -82,16 +83,18 @@ async function createJobOrder(req, res) {
       const rows = await sql`
         insert into job_orders (
           job_no, customer_id, device_id, reported_problem, diagnosis, requested_repair,
-          parts_required, technician_name, repair_notes, estimated_cost, final_cost, capital_cost, profit,
+          parts_required, technician_name, technician_id, repair_notes, estimated_cost, final_cost, capital_cost, profit,
           status, payment_status, date_received, expected_completion, warranty_info, created_by
         ) values (
           ${job_no}, ${b.customer_id}, ${b.device_id},
-          ${sanitizeText(b.reported_problem, 1000)}, ${sanitizeText(b.diagnosis, 1000)}, ${sanitizeText(b.requested_repair, 1000)},
-          ${sanitizeText(b.parts_required, 1000)}, ${sanitizeText(b.technician_name, 150)}, ${sanitizeText(b.repair_notes, 2000)},
-          ${Number(b.estimated_cost) || 0}, ${Number(b.final_cost) || 0}, ${Number(b.capital_cost) || 0}, ${(Number(b.final_cost) || 0) - (Number(b.capital_cost) || 0)},
+          ${sanitizeText(b.reported_problem, 1000)}, ${isTechnician ? "" : sanitizeText(b.diagnosis, 1000)}, ${isTechnician ? "" : sanitizeText(b.requested_repair, 1000)},
+          ${sanitizeText(b.parts_required, 1000)}, ${isTechnician ? (req.session.name || "Technician") : sanitizeText(b.technician_name, 150)},
+          ${isTechnician ? req.session.sub : null}, ${isTechnician ? "" : sanitizeText(b.repair_notes, 2000)},
+          ${isTechnician ? 0 : Number(b.estimated_cost) || 0}, ${isTechnician ? 0 : Number(b.final_cost) || 0},
+          ${isTechnician ? 0 : Number(b.capital_cost) || 0}, ${isTechnician ? 0 : (Number(b.final_cost) || 0) - (Number(b.capital_cost) || 0)},
           ${safeStatus},
-          ${safePaymentStatus}, ${b.date_received || new Date().toISOString().slice(0, 10)},
-          ${b.expected_completion || null}, ${sanitizeText(b.warranty_info, 500)}, ${req.session.sub}
+          ${safePaymentStatus}, ${isTechnician ? new Date().toISOString().slice(0, 10) : b.date_received || new Date().toISOString().slice(0, 10)},
+          ${isTechnician ? null : b.expected_completion || null}, ${isTechnician ? "" : sanitizeText(b.warranty_info, 500)}, ${req.session.sub}
         )
         returning *
       `;
@@ -105,13 +108,17 @@ async function createJobOrder(req, res) {
   let itemsWarning = null;
   if (Array.isArray(b.items) && b.items.length) {
     try {
-      await saveItems(jobOrder.id, b.items);
+      await saveItems(jobOrder.id, isTechnician
+        ? b.items.map((item) => ({ ...item, unit_cost: 0 }))
+        : b.items);
     } catch (err) {
       // The job order itself is already saved at this point — don't throw
       // and make the admin think nothing happened. Surface it as a warning
       // instead so they can still proceed and retry the items separately.
       console.error("Error saving job order items:", err);
-      itemsWarning = "The job order was created, but the items list couldn't be saved. Add them from the job order's detail page.";
+      itemsWarning = isTechnician
+        ? "The job order was created, but its items list couldn't be saved. Ask staff to add the items."
+        : "The job order was created, but the items list couldn't be saved. Add them from the job order's detail page.";
     }
   }
 
@@ -191,7 +198,7 @@ async function updateJobOrder(req, res, id) {
 
   const rows = await sql`
     update job_orders set
-      diagnosis = coalesce(${b.diagnosis !== undefined ? sanitizeText(b.diagnosis, 1000) : null}, diagnosis),
+      diagnosis = coalesce(${!isTechnician && b.diagnosis !== undefined ? sanitizeText(b.diagnosis, 1000) : null}, diagnosis),
       repair_notes = coalesce(${b.repair_notes !== undefined ? sanitizeText(b.repair_notes, 2000) : null}, repair_notes),
       status = coalesce(${requestedStatus}, status),
       reported_problem = coalesce(${!isTechnician && b.reported_problem !== undefined ? sanitizeText(b.reported_problem, 1000) : null}, reported_problem),

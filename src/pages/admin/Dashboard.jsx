@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { api } from "../../lib/api.js";
 import StatusBadge from "../../components/admin/StatusBadge.jsx";
 import { StaggerGroup, StaggerItem } from "../../components/motion/index.jsx";
+import { useAuth } from "../../lib/auth-context.jsx";
 
 const CARD_DEFS = [
   { key: "total", label: "Total Job Orders" },
@@ -18,11 +19,61 @@ const CARD_DEFS = [
 const COLORS = ["#2F80ED", "#E23744", "#22C55E", "#A855F7", "#F59E0B", "#64748B", "#0B0F16"];
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [data, setData] = useState(null);
+  const [technicianJobs, setTechnicianJobs] = useState([]);
+  const [technicianError, setTechnicianError] = useState("");
 
   useEffect(() => {
+    if (user?.role === "technician") {
+      api.get("/job-orders")
+        .then(({ jobOrders }) => setTechnicianJobs(jobOrders))
+        .catch((err) => setTechnicianError(`Could not load your job orders: ${err.message}`));
+      return;
+    }
     api.get("/reports?type=summary").then(setData).catch(() => {});
-  }, []);
+  }, [user?.role]);
+
+  if (user?.role === "technician") {
+    const recentJobs = technicianJobs.slice(0, 5);
+    return (
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="font-display font-bold text-2xl">Technician Workspace</h1>
+            <p className="text-ink/60 mt-1">Create and manage the job orders assigned to you.</p>
+          </div>
+          <Link to="/admin/job-orders/new" className="btn-primary">Create Job Order</Link>
+        </div>
+
+        <section className="card p-5 sm:p-6 mt-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 className="font-display font-semibold">Your Recent Job Orders</h2>
+            <Link to="/admin/job-orders" className="text-sm text-brand-blue font-semibold">View all jobs</Link>
+          </div>
+          {technicianError && <p className="text-sm text-brand-red" role="alert">{technicianError}</p>}
+          {!technicianError && recentJobs.length === 0 && (
+            <p className="text-ink/60">No assigned job orders yet. Create a new order to get started.</p>
+          )}
+          {recentJobs.length > 0 && (
+            <ul className="divide-y divide-ink/10">
+              {recentJobs.map((job) => (
+                <li key={job.id} className="py-3 first:pt-0 last:pb-0 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <Link to={`/admin/job-orders/${job.id}`} className="font-semibold text-brand-blue hover:underline">
+                      {job.job_no}
+                    </Link>
+                    <p className="text-sm text-ink/70">{job.customer_name} · {job.device_type} {job.brand} {job.model}</p>
+                  </div>
+                  <StatusBadge value={job.status} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    );
+  }
 
   if (!data) return <p className="text-ink/50">Loading dashboard…</p>;
 

@@ -4,6 +4,7 @@ import { Plus, Minus, Printer, FileInput } from "lucide-react";
 import { useSettings } from "../../lib/useSettings.js";
 import { api } from "../../lib/api.js";
 import { toDateInputValue } from "../../lib/date.js";
+import { useAuth } from "../../lib/auth-context.jsx";
 import Logotype from "../../components/site/Logotype.jsx";
 
 // Pure client-side receipt/order-slip builder — nothing here is saved to the
@@ -29,6 +30,8 @@ function buildItemDescription(jobOrder, description) {
 
 export default function OrderSlip() {
   const settings = useSettings();
+  const { user } = useAuth();
+  const isTechnician = user.role === "technician";
   const [searchParams] = useSearchParams();
   const jobOrderId = searchParams.get("jobOrderId");
 
@@ -38,6 +41,7 @@ export default function OrderSlip() {
   const [deposit, setDeposit] = useState("");
   const [sourceJobOrder, setSourceJobOrder] = useState(null);
   const [loadingJobOrder, setLoadingJobOrder] = useState(!!jobOrderId);
+  const [loadError, setLoadError] = useState("");
 
   // Coming from a Job Order's Print button — pull in its customer, items
   // (or a one-line fallback if it has none yet), and payments so far, all
@@ -67,7 +71,7 @@ export default function OrderSlip() {
         const paid = (payments || []).reduce((s, p) => s + Number(p.amount), 0);
         if (paid) setDeposit(paid.toFixed(2));
       })
-      .catch(() => {})
+      .catch((err) => setLoadError(`Could not load this job order: ${err.message}`))
       .finally(() => setLoadingJobOrder(false));
   }, [jobOrderId]);
 
@@ -87,36 +91,58 @@ export default function OrderSlip() {
   const paddedItems = items.length >= MIN_ROWS ? items : [...items, ...Array(MIN_ROWS - items.length).fill(null)];
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(SITE_URL)}`;
 
+  if (isTechnician && !jobOrderId) {
+    return (
+      <div>
+        <h1 className="font-display font-bold text-2xl">Print Job Order</h1>
+        <p className="text-ink/60 mt-2">Open one of your assigned job orders and choose Print.</p>
+        <Link to="/admin/job-orders" className="btn-primary mt-5">View My Job Orders</Link>
+      </div>
+    );
+  }
+  if (isTechnician && loadingJobOrder) return <p className="text-ink/60">Loading job order…</p>;
+  if (isTechnician && loadError) {
+    return (
+      <div>
+        <p className="text-brand-red" role="alert">{loadError}</p>
+        <Link to="/admin/job-orders" className="btn-secondary mt-4">Back to My Job Orders</Link>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="no-print">
         <h1 className="font-display font-bold text-2xl">Order Slip</h1>
         <p className="text-ink/60 mt-1">
-          Fill this in and print — it produces one page with a customer copy and an admin copy. Nothing here is saved automatically.
+          {isTechnician
+            ? "Review the job order details and print a customer and shop copy."
+            : "Fill this in and print — it produces one page with a customer copy and an admin copy. Nothing here is saved automatically."}
         </p>
 
         {loadingJobOrder && <p className="text-sm text-ink/50 mt-4">Loading job order details…</p>}
+        {loadError && <p className="text-sm text-brand-red mt-4" role="alert">{loadError}</p>}
         {sourceJobOrder && (
           <div className="flex items-start gap-3 bg-brand-blue/10 border border-brand-blue/20 rounded-lg p-4 mt-4 text-sm">
             <FileInput size={18} className="text-brand-blue mt-0.5 shrink-0" />
             <p className="text-ink/70">
-              Pre-filled from job order <strong>{sourceJobOrder.job_no}</strong>. Everything below is editable —
-              add, remove, or change items before printing.
+              Pre-filled from job order <strong>{sourceJobOrder.job_no}</strong>.
+              {!isTechnician && " Everything below is editable — add, remove, or change items before printing."}
             </p>
           </div>
         )}
 
         <div className="card p-6 mt-6 grid sm:grid-cols-2 gap-4">
-          <input placeholder="Customer Name" className="input" value={customer.name} onChange={(e) => setCustomer((c) => ({ ...c, name: e.target.value }))} />
-          <input placeholder="Contact Number" className="input" value={customer.contact} onChange={(e) => setCustomer((c) => ({ ...c, contact: e.target.value }))} />
-          <input placeholder="Customer Address" className="input sm:col-span-2" value={customer.address} onChange={(e) => setCustomer((c) => ({ ...c, address: e.target.value }))} />
+          <input placeholder="Customer Name" className="input" value={customer.name} readOnly={isTechnician} onChange={(e) => setCustomer((c) => ({ ...c, name: e.target.value }))} />
+          <input placeholder="Contact Number" className="input" value={customer.contact} readOnly={isTechnician} onChange={(e) => setCustomer((c) => ({ ...c, contact: e.target.value }))} />
+          <input placeholder="Customer Address" className="input sm:col-span-2" value={customer.address} readOnly={isTechnician} onChange={(e) => setCustomer((c) => ({ ...c, address: e.target.value }))} />
           <label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
             <span className="font-medium text-ink/80">Received Date</span>
-            <input type="date" className="input" value={customer.date} onChange={(e) => setCustomer((c) => ({ ...c, date: e.target.value }))} />
+            <input type="date" className="input" value={customer.date} readOnly={isTechnician} onChange={(e) => setCustomer((c) => ({ ...c, date: e.target.value }))} />
           </label>
           <label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
             <span className="font-medium text-ink/80">Job Order No.</span>
-            <input className="input" value={jobOrderNo} onChange={(e) => setJobOrderNo(e.target.value)} />
+            <input className="input" value={jobOrderNo} readOnly={isTechnician} onChange={(e) => setJobOrderNo(e.target.value)} />
           </label>
         </div>
 
@@ -125,24 +151,28 @@ export default function OrderSlip() {
             <div key={i} className="grid grid-cols-[80px_1fr_120px_auto] gap-3 items-end mb-3">
               <label className="flex flex-col gap-1 text-xs">
                 <span className="text-ink/50">Qty</span>
-                <input type="number" min="0" className="input" value={it.qty} onChange={(e) => updateItem(i, "qty", e.target.value)} />
+                <input type="number" min="0" className="input" value={it.qty} readOnly={isTechnician} onChange={(e) => updateItem(i, "qty", e.target.value)} />
               </label>
               <label className="flex flex-col gap-1 text-xs">
                 <span className="text-ink/50">Description</span>
-                <input className="input" value={it.description} onChange={(e) => updateItem(i, "description", e.target.value)} />
+                <input className="input" value={it.description} readOnly={isTechnician} onChange={(e) => updateItem(i, "description", e.target.value)} />
               </label>
               <label className="flex flex-col gap-1 text-xs">
                 <span className="text-ink/50">Amount</span>
-                <input type="number" min="0" step="0.01" className="input" value={it.amount} onChange={(e) => updateItem(i, "amount", e.target.value)} />
+                <input type="number" min="0" step="0.01" className="input" value={it.amount} readOnly={isTechnician} onChange={(e) => updateItem(i, "amount", e.target.value)} />
               </label>
-              <button type="button" onClick={() => removeItem(i)} disabled={items.length === 1} className="btn-secondary h-[42px] disabled:opacity-40" aria-label="Remove item">
-                <Minus size={15} />
-              </button>
+              {!isTechnician && (
+                <button type="button" onClick={() => removeItem(i)} disabled={items.length === 1} className="btn-secondary h-[42px] disabled:opacity-40" aria-label="Remove item">
+                  <Minus size={15} />
+                </button>
+              )}
             </div>
           ))}
-          <button type="button" onClick={addItem} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-blue hover:text-brand-blueDeep mt-1">
-            <Plus size={15} /> Add Item
-          </button>
+          {!isTechnician && (
+            <button type="button" onClick={addItem} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-blue hover:text-brand-blueDeep mt-1">
+              <Plus size={15} /> Add Item
+            </button>
+          )}
         </div>
 
         <div className="card p-6 mt-4 grid sm:grid-cols-3 gap-4">
@@ -152,7 +182,7 @@ export default function OrderSlip() {
           </label>
           <label className="flex flex-col gap-1.5 text-sm">
             <span className="font-medium text-ink/80">Deposit</span>
-            <input type="number" min="0" step="0.01" className="input" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
+            <input type="number" min="0" step="0.01" className="input" value={deposit} readOnly={isTechnician} onChange={(e) => setDeposit(e.target.value)} />
           </label>
           <label className="flex flex-col gap-1.5 text-sm">
             <span className="font-medium text-ink/80">Balance</span>

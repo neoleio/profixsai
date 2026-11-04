@@ -91,7 +91,10 @@ export default async function handleReports(req, res, rest) {
   }
   req.session = session;
   const type = rest[0];
-  if (type === "summary") return summary(req, res);
+  if (type === "summary") {
+    if (!["admin", "staff"].includes(session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
+    return summary(req, res);
+  }
   if (type === "revenue" || type === "warranties") {
     if (!["admin", "staff"].includes(session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
     if (type === "revenue") return revenue(req, res);

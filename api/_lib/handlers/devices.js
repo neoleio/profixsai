@@ -4,6 +4,9 @@ import { logAction } from "../audit.js";
 import { badRequest, methodNotAllowed, sanitizeText } from "../http.js";
 
 async function listDevices(req, res) {
+  if (req.session.role === "technician") {
+    return res.status(403).json({ error: "Technicians can access device details through assigned job orders." });
+  }
   const q = sanitizeText(req.query?.q, 150);
   const rows = q
     ? await sql`
@@ -22,7 +25,7 @@ async function listDevices(req, res) {
 }
 
 async function createDevice(req, res) {
-  if (!["admin", "staff"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
+  if (!["admin", "staff", "technician"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
   const { customer_id, device_type, brand, model, serial_number, imei, color, condition_notes } = req.body || {};
   if (!customer_id || !device_type) return badRequest(res, "Customer and device type are required.");
   const rows = await sql`
@@ -38,10 +41,17 @@ async function createDevice(req, res) {
 async function getDeviceHistory(req, res, id) {
   const device = await sql`select * from devices where id = ${id}`;
   if (!device[0]) return res.status(404).json({ error: "Device not found." });
-  const history = await sql`
-    select id, job_no, status, reported_problem, diagnosis, repair_notes, date_received, released_at
-    from job_orders where device_id = ${id} order by date_received desc
-  `;
+  const history = req.session.role === "technician"
+    ? await sql`
+        select id, job_no, status, reported_problem, diagnosis, repair_notes, date_received, released_at
+        from job_orders
+        where device_id = ${id} and technician_id = ${req.session.sub}
+        order by date_received desc
+      `
+    : await sql`
+        select id, job_no, status, reported_problem, diagnosis, repair_notes, date_received, released_at
+        from job_orders where device_id = ${id} order by date_received desc
+      `;
   res.status(200).json({ device: device[0], history });
 }
 

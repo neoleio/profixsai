@@ -6,7 +6,7 @@ import { toDateInputValue } from "../../lib/date.js";
 import { useAuth } from "../../lib/auth-context.jsx";
 import StatusBadge from "../../components/admin/StatusBadge.jsx";
 
-const STATUSES = ["Received", "Diagnosing", "Waiting for Approval", "Not Repaired", "Completed", "Released"];
+const STATUSES = ["Received", "Diagnosing", "Waiting for Approval", "Repairing", "Quality Check", "Not Repaired", "Completed", "Released"];
 
 export default function JobOrderDetail() {
   const { id } = useParams();
@@ -79,7 +79,9 @@ export default function JobOrderDetail() {
     try {
       await api.put(`/job-orders?id=${id}`, form);
       try {
-        await api.put(`/job-orders?id=${id}&action=items`, { items: items.filter((it) => it.description.trim()) });
+        if (!isTechnician) {
+          await api.put(`/job-orders?id=${id}&action=items`, { items: items.filter((it) => it.description.trim()) });
+        }
         setMessage("Saved.");
       } catch (itemsErr) {
         setMessage(`Job order saved, but items didn't save: ${itemsErr.message}`);

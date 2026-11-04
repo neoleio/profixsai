@@ -43,7 +43,7 @@ export default function JobOrders() {
           <h1 className="font-display font-bold text-2xl">Job Orders</h1>
           <p className="text-ink/60 mt-1">Track and manage every repair job.</p>
         </div>
-        {(user.role === "admin" || user.role === "staff") && (
+        {["admin", "staff", "technician"].includes(user.role) && (
           <Link to="/admin/job-orders/new" className="btn-primary"><Plus size={16} /> New Job Order</Link>
         )}
       </div>
@@ -87,9 +87,9 @@ export default function JobOrders() {
               <th className="py-3 px-4">Job No.</th>
               <th className="py-3 px-4">Customer</th>
               <th className="py-3 px-4">Device</th>
-              <th className="py-3 px-4">Technician</th>
+              {user.role !== "technician" && <th className="py-3 px-4">Technician</th>}
               <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4">Payment</th>
+              {user.role !== "technician" && <th className="py-3 px-4">Payment</th>}
               <th className="py-3 px-4">Date Received</th>
               <th className="py-3 px-4">Release Date</th>
               <th className="py-3 px-4">Actions</th>
@@ -101,9 +101,9 @@ export default function JobOrders() {
                 <td className="py-3 px-4 font-mono text-xs">{j.job_no}</td>
                 <td className="py-3 px-4">{j.customer_name}</td>
                 <td className="py-3 px-4">{j.brand} {j.model}</td>
-                <td className="py-3 px-4">{j.technician_name || "—"}</td>
+                {user.role !== "technician" && <td className="py-3 px-4">{j.technician_name || "—"}</td>}
                 <td className="py-3 px-4"><StatusBadge value={j.status} /></td>
-                <td className="py-3 px-4"><StatusBadge value={j.payment_status} /></td>
+                {user.role !== "technician" && <td className="py-3 px-4"><StatusBadge value={j.payment_status} /></td>}
                 <td className="py-3 px-4 text-ink/60">{formatDate(j.date_received)}</td>
                 <td className="py-3 px-4 text-ink/60">{formatDate(j.released_at) || "—"}</td>
                 <td className="py-3 px-4">
@@ -118,7 +118,7 @@ export default function JobOrders() {
               </tr>
             ))}
             {!loading && jobOrders.length === 0 && (
-              <tr><td colSpan={9} className="py-8 text-center text-ink/40">No job orders match your search.</td></tr>
+              <tr><td colSpan={user.role === "technician" ? 7 : 9} className="py-8 text-center text-ink/40">No job orders match your search.</td></tr>
             )}
           </tbody>
         </table>

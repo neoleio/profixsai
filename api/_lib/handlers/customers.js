@@ -34,15 +34,25 @@ async function getCustomer(req, res, id) {
   const customerRows = await sql`select * from customers where id = ${id}`;
   if (!customerRows[0]) return res.status(404).json({ error: "Customer not found." });
   const devices = await sql`select * from devices where customer_id = ${id} order by created_at desc`;
-  const jobOrders = await sql`
-    select jo.*, d.brand, d.model, d.device_type
-    from job_orders jo join devices d on d.id = jo.device_id
-    where jo.customer_id = ${id} order by jo.created_at desc
-  `;
+  const jobOrders = req.session.role === "technician"
+    ? await sql`
+        select jo.*, d.brand, d.model, d.device_type
+        from job_orders jo join devices d on d.id = jo.device_id
+        where jo.customer_id = ${id} and jo.technician_id = ${req.session.sub}
+        order by jo.created_at desc
+      `
+    : await sql`
+        select jo.*, d.brand, d.model, d.device_type
+        from job_orders jo join devices d on d.id = jo.device_id
+        where jo.customer_id = ${id} order by jo.created_at desc
+      `;
   res.status(200).json({ customer: customerRows[0], devices, jobOrders });
 }
 
 async function updateCustomer(req, res, id) {
+  if (req.session.role === "technician") {
+    return res.status(403).json({ error: "You do not have permission to do that." });
+  }
   const { full_name, contact_number, email, address } = req.body || {};
   const rows = await sql`
     update customers set
@@ -60,7 +70,7 @@ async function updateCustomer(req, res, id) {
 
 export default async function handleCustomers(req, res, rest) {
   const session = getSessionFromRequest(req);
-  if (!session || !["admin", "staff"].includes(session.role)) {
+  if (!session || !["admin", "staff", "technician"].includes(session.role)) {
     return res.status(session ? 403 : 401).json({ error: session ? "You do not have permission to do that." : "Not authenticated." });
   }
   req.session = session;

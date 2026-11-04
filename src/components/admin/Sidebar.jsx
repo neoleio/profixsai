@@ -1,7 +1,8 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, ClipboardList, Wrench,
-  BarChart3, UserCog, Settings, LogOut, Inbox, MessageSquare, Receipt, LifeBuoy
+  BarChart3, UserCog, Settings, LogOut, Inbox, MessageSquare, Receipt, LifeBuoy, Plus,
+  PanelLeftClose, PanelLeftOpen
 } from "lucide-react";
 import { useAuth } from "../../lib/auth-context.jsx";
 import { useNewRequestsCount } from "../../lib/useNewRequestsCount.js";
@@ -13,6 +14,7 @@ const ITEMS = [
   { to: "/admin/repair-requests", label: "Repair Requests", icon: Inbox, roles: ["admin", "staff"], notify: "requests" },
   { to: "/admin/messages", label: "Messages", icon: MessageSquare, roles: ["admin", "staff"], notify: "messages" },
   { to: "/admin/job-orders", label: "Job Orders", icon: ClipboardList, roles: ["admin", "staff", "technician"] },
+  { to: "/admin/job-orders/new", label: "New Job Order", icon: Plus, roles: ["technician"] },
   { to: "/admin/services", label: "Services", icon: Wrench, roles: ["admin"] },
   { to: "/admin/order-slip", label: "Order Slip", icon: Receipt, roles: ["admin", "staff"] },
   { to: "/admin/reports", label: "Reports", icon: BarChart3, roles: ["admin", "staff"] },
@@ -20,7 +22,7 @@ const ITEMS = [
   { to: "/admin/settings", label: "Settings", icon: Settings, roles: ["admin"] }
 ];
 
-export default function Sidebar({ onNavigate }) {
+export default function Sidebar({ onNavigate, collapsed = false, onToggleCollapse }) {
   const { user, logout } = useAuth();
   const items = ITEMS.filter((i) => i.roles.includes(user?.role));
   const canSeeInboxes = ["admin", "staff"].includes(user?.role);
@@ -30,12 +32,23 @@ export default function Sidebar({ onNavigate }) {
 
   return (
     <div className="flex flex-col h-full bg-ink text-white/90">
-      <div className="px-5 py-5 border-b border-white/10 flex items-center gap-2.5">
+      <div className={`px-5 py-5 border-b border-white/10 flex items-center gap-2.5 ${collapsed ? "justify-center px-2" : ""}`}>
         <img src="/assets/logo.png" alt="ProFixSAI logo" className="w-8 h-8 rounded-full object-cover" />
-        <div>
+        <div className={collapsed ? "hidden" : ""}>
           <Logotype size="base" className="leading-none" />
           <p className="text-xs text-white/70 mt-0.5">Repair Management</p>
         </div>
+        {user?.role === "technician" && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className={`ml-auto rounded-md p-1.5 text-white/80 hover:bg-white/10 hover:text-white ${collapsed ? "ml-0" : ""}`}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          </button>
+        )}
       </div>
       <nav className="flex-1 py-4 px-3 flex flex-col gap-1 overflow-y-auto">
         {items.map(({ to, label, icon: Icon, end, notify }) => {
@@ -48,16 +61,18 @@ export default function Sidebar({ onNavigate }) {
               onClick={onNavigate}
               className={({ isActive }) =>
                 `relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${
+                  collapsed ? "justify-center px-0" : ""} ${
                   isActive
                     ? "bg-white/10 text-white before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-r-full before:bg-brand-red"
                     : "hover:bg-white/5 hover:text-white"
                 }`
               }
+              title={collapsed ? label : undefined}
             >
               {({ isActive }) => (
                 <>
-                  <Icon size={17} className={isActive ? "text-brand-red" : ""} />
-                  <span className="flex-1">{label}</span>
+                  <Icon size={19} className={isActive ? "text-brand-red" : ""} />
+                  <span className={`flex-1 ${collapsed ? "hidden" : ""}`}>{label}</span>
                   {count > 0 && (
                     <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-brand-red text-white text-[11px] font-bold grid place-items-center">
                       {count > 9 ? "9+" : count}
@@ -73,22 +88,24 @@ export default function Sidebar({ onNavigate }) {
         <NavLink
           to="/admin/help"
           onClick={onNavigate}
+          title={collapsed ? "Help & Support" : undefined}
           className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${
+              collapsed ? "justify-center px-0" : ""} ${
               isActive ? "bg-brand-blue text-white" : "bg-white/5 text-white hover:bg-white/10"
             }`
           }
         >
           <LifeBuoy size={17} />
-          <span className="flex-1">Help &amp; Support</span>
+          <span className={`flex-1 ${collapsed ? "hidden" : ""}`}>Help &amp; Support</span>
         </NavLink>
       </div>
-      <div className="px-5 py-4 border-t border-white/10">
-        <p className="text-xs text-white/70">Signed in as</p>
-        <p className="text-sm font-medium text-white">{user?.name}</p>
-        <p className="text-xs text-white/70 capitalize">{user?.role}</p>
-        <button onClick={logout} className="mt-3 flex items-center gap-2 text-base text-white/90 hover:text-white">
-          <LogOut size={15} /> Log out
+      <div className={`px-5 py-4 border-t border-white/10 ${collapsed ? "px-2 text-center" : ""}`}>
+        <p className={`text-xs text-white/70 ${collapsed ? "hidden" : ""}`}>Signed in as</p>
+        <p className={`text-sm font-medium text-white truncate ${collapsed ? "hidden" : ""}`}>{user?.name}</p>
+        <p className={`text-xs text-white/70 capitalize ${collapsed ? "hidden" : ""}`}>{user?.role}</p>
+        <button onClick={logout} className={`mt-3 flex items-center gap-2 text-base text-white/90 hover:text-white ${collapsed ? "mx-auto" : ""}`} title={collapsed ? "Log out" : undefined}>
+          <LogOut size={17} /> <span className={collapsed ? "hidden" : ""}>Log out</span>
         </button>
       </div>
     </div>

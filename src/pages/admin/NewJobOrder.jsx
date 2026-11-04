@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { ArrowLeft, RotateCcw, Inbox, Plus, Minus } from "lucide-react";
 import { api } from "../../lib/api.js";
 import { formatDate } from "../../lib/date.js";
+import { useAuth } from "../../lib/auth-context.jsx";
 
 const emptyCustomer = { full_name: "", contact_number: "", email: "", address: "" };
 const emptyDevice = { device_type: "", brand: "", model: "", serial_number: "", imei: "", color: "", condition_notes: "" };
@@ -15,6 +16,8 @@ const emptyItem = () => ({ description: "", quantity: 1, unit_cost: "" });
 export default function NewJobOrder() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const isTechnician = user.role === "technician";
   const sourceRequest = location.state?.fromRepairRequest || null;
 
   const [customers, setCustomers] = useState([]);
@@ -138,8 +141,11 @@ export default function NewJobOrder() {
         customer_id: finalCustomerId,
         device_id: finalDeviceId,
         ...repair,
-        estimated_cost: repair.estimated_cost || 0,
-        items: items.filter((it) => it.description.trim())
+        estimated_cost: isTechnician ? 0 : repair.estimated_cost || 0,
+        technician_name: isTechnician ? user.name : repair.technician_name,
+        items: items.filter((it) => it.description.trim()).map((it) => (
+          isTechnician ? { ...it, unit_cost: 0 } : it
+        ))
       });
 
       if (sourceRequest) {
@@ -163,7 +169,7 @@ export default function NewJobOrder() {
       <h1 className="font-display font-bold text-2xl mt-3">New Job Order</h1>
       <p className="text-ink/60 mt-1">Create a repair job for a customer and device.</p>
 
-      {sourceRequest && (
+      {sourceRequest && !isTechnician && (
         <div className="flex items-start gap-3 bg-brand-blue/10 border border-brand-blue/20 rounded-lg p-4 mt-4 text-sm">
           <Inbox size={18} className="text-brand-blue mt-0.5 shrink-0" />
           <p className="text-ink/70">
@@ -181,7 +187,7 @@ export default function NewJobOrder() {
 
       <form onSubmit={onSubmit} className="mt-5 grid grid-cols-1 items-start gap-4">
         {/* Customer */}
-        <section className="card p-4">
+        <section className="card p-5">
           <h2 className="font-display font-semibold mb-3">Customer Information</h2>
           {!addingCustomer ? (
             <>
@@ -227,7 +233,7 @@ export default function NewJobOrder() {
 
         {/* Device */}
         {(customerId || addingCustomer) && (
-          <section className="card p-4">
+          <section className="card p-5">
             <h2 className="font-display font-semibold mb-3">Device Information</h2>
             {devices.length > 0 && !addingDevice && (
               <>
@@ -260,19 +266,19 @@ export default function NewJobOrder() {
         )}
 
         {/* Repair Info */}
-        <section className="card p-4">
+        <section className="card p-5">
           <h2 className="font-display font-semibold mb-3">Repair Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Reported Problem" className="sm:col-span-2"><textarea required className="input" value={repair.reported_problem} onChange={(e) => setRepair((r) => ({ ...r, reported_problem: e.target.value }))} /></Field>
             <Field label="Parts Required"><input className="input" value={repair.parts_required} onChange={(e) => setRepair((r) => ({ ...r, parts_required: e.target.value }))} /></Field>
-            <Field label="Technician Assigned"><input className="input" placeholder="Type a technician's name" value={repair.technician_name} onChange={(e) => setRepair((r) => ({ ...r, technician_name: e.target.value }))} /></Field>
-            <Field label="Estimated Cost (₱)"><input type="number" min="0" step="0.01" className="input" value={repair.estimated_cost} onChange={(e) => setRepair((r) => ({ ...r, estimated_cost: e.target.value }))} /></Field>
-            <Field label="Warranty Information"><input className="input" value={repair.warranty_info} onChange={(e) => setRepair((r) => ({ ...r, warranty_info: e.target.value }))} /></Field>
+            {!isTechnician && <Field label="Technician Assigned"><input className="input" placeholder="Type a technician's name" value={repair.technician_name} onChange={(e) => setRepair((r) => ({ ...r, technician_name: e.target.value }))} /></Field>}
+            {!isTechnician && <Field label="Estimated Cost (₱)"><input type="number" min="0" step="0.01" className="input" value={repair.estimated_cost} onChange={(e) => setRepair((r) => ({ ...r, estimated_cost: e.target.value }))} /></Field>}
+            {!isTechnician && <Field label="Warranty Information"><input className="input" value={repair.warranty_info} onChange={(e) => setRepair((r) => ({ ...r, warranty_info: e.target.value }))} /></Field>}
           </div>
         </section>
 
         {/* Items */}
-        <section className="card p-4">
+        <section className="card p-5">
           <h2 className="font-display font-semibold mb-1">Items</h2>
           <p className="text-xs text-ink/50 mb-3">Parts or services for this job — these carry over automatically when printing an Order Slip for this job order.</p>
           {items.map((it, i) => (
@@ -287,7 +293,7 @@ export default function NewJobOrder() {
               </label>
               <label className="flex min-w-0 flex-col gap-1 text-xs">
                 <span className="text-ink/50">Unit Cost (₱)</span>
-                <input type="number" min="0" step="0.01" className="input" value={it.unit_cost} onChange={(e) => updateItem(i, "unit_cost", e.target.value)} />
+                <input type="number" min="0" step="0.01" className="input" value={isTechnician ? "0" : it.unit_cost} onChange={(e) => updateItem(i, "unit_cost", e.target.value)} readOnly={isTechnician} />
               </label>
               <button type="button" onClick={() => removeItem(i)} disabled={items.length === 1} className="btn-secondary h-[42px] disabled:opacity-40" aria-label="Remove item">
                 <Minus size={15} />

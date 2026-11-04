@@ -75,7 +75,7 @@ export default function App() {
         <Route
           path="job-orders/new"
           element={
-            <ProtectedRoute roles={["admin", "staff"]}>
+            <ProtectedRoute roles={["admin", "staff", "technician"]}>
               <NewJobOrder />
             </ProtectedRoute>
           }
@@ -99,8 +99,22 @@ export default function App() {
           }
         />
 
-        <Route path="devices" element={<Devices />} />
-        <Route path="devices/:id" element={<DeviceDetail />} />
+        <Route
+          path="devices"
+          element={
+            <ProtectedRoute roles={["admin", "staff"]}>
+              <Devices />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="devices/:id"
+          element={
+            <ProtectedRoute roles={["admin", "staff"]}>
+              <DeviceDetail />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="services"
@@ -114,7 +128,7 @@ export default function App() {
         <Route
           path="order-slip"
           element={
-            <ProtectedRoute roles={["admin", "staff"]}>
+            <ProtectedRoute roles={["admin", "staff", "technician"]}>
               <OrderSlip />
             </ProtectedRoute>
           }
