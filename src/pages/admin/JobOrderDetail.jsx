@@ -43,10 +43,8 @@ export default function JobOrderDetail() {
   function formFromJobOrder(jobOrder) {
     return {
       status: jobOrder.status,
-      diagnosis: jobOrder.diagnosis || "",
       repair_notes: jobOrder.repair_notes || "",
       reported_problem: jobOrder.reported_problem || "",
-      requested_repair: jobOrder.requested_repair || "",
       parts_required: jobOrder.parts_required || "",
       technician_name: jobOrder.technician_name || "",
       estimated_cost: jobOrder.estimated_cost || 0,
@@ -152,16 +150,10 @@ export default function JobOrderDetail() {
         </section>
 
         <section className="card p-6">
-          <h2 className="font-display font-semibold mb-4">Diagnosis &amp; Repair</h2>
+          <h2 className="font-display font-semibold mb-4">Job Details</h2>
           <div className="grid gap-4">
             <Field label="Reported Problem">
               <textarea disabled={isTechnician} className="input disabled:bg-fog-100" value={form.reported_problem} onChange={(e) => setForm((f) => ({ ...f, reported_problem: e.target.value }))} />
-            </Field>
-            <Field label="Diagnosis">
-              <textarea className="input" value={form.diagnosis} onChange={(e) => setForm((f) => ({ ...f, diagnosis: e.target.value }))} />
-            </Field>
-            <Field label="Requested Repair">
-              <textarea disabled={isTechnician} className="input disabled:bg-fog-100" value={form.requested_repair} onChange={(e) => setForm((f) => ({ ...f, requested_repair: e.target.value }))} />
             </Field>
             <Field label="Parts Required">
               <input disabled={isTechnician} className="input disabled:bg-fog-100" value={form.parts_required} onChange={(e) => setForm((f) => ({ ...f, parts_required: e.target.value }))} />

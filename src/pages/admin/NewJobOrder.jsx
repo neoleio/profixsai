@@ -179,7 +179,7 @@ export default function NewJobOrder() {
 
       {lookupError && <p className="mt-4 text-sm text-brand-red" role="alert">{lookupError}</p>}
 
-      <form onSubmit={onSubmit} className="mt-5 grid grid-cols-1 lg:grid-cols-2 items-start gap-4">
+      <form onSubmit={onSubmit} className="mt-5 grid grid-cols-1 items-start gap-4">
         {/* Customer */}
         <section className="card p-4">
           <h2 className="font-display font-semibold mb-3">Customer Information</h2>
@@ -215,12 +215,12 @@ export default function NewJobOrder() {
               </button>
             </>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Field label="Customer Name"><input required className="input" value={newCustomer.full_name} onChange={(e) => setNewCustomer((c) => ({ ...c, full_name: e.target.value }))} /></Field>
               <Field label="Contact Number"><input required className="input" value={newCustomer.contact_number} onChange={(e) => setNewCustomer((c) => ({ ...c, contact_number: e.target.value }))} /></Field>
               <Field label="Email"><input className="input" value={newCustomer.email} onChange={(e) => setNewCustomer((c) => ({ ...c, email: e.target.value }))} /></Field>
               <Field label="Address"><input className="input" value={newCustomer.address} onChange={(e) => setNewCustomer((c) => ({ ...c, address: e.target.value }))} /></Field>
-              <button type="button" className="text-sm text-ink/50 col-span-2 text-left" onClick={() => setAddingCustomer(false)}>← Search existing customer instead</button>
+              <button type="button" className="text-sm text-ink/50 sm:col-span-2 text-left" onClick={() => setAddingCustomer(false)}>← Search existing customer instead</button>
             </div>
           )}
         </section>
@@ -243,16 +243,16 @@ export default function NewJobOrder() {
               </>
             )}
             {(devices.length === 0 || addingDevice) && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Device Type"><input required placeholder="Enter device type" className="input" value={newDevice.device_type} onChange={(e) => setNewDevice((d) => ({ ...d, device_type: e.target.value }))} /></Field>
                 <Field label="Brand"><input className="input" value={newDevice.brand} onChange={(e) => setNewDevice((d) => ({ ...d, brand: e.target.value }))} /></Field>
                 <Field label="Model"><input className="input" value={newDevice.model} onChange={(e) => setNewDevice((d) => ({ ...d, model: e.target.value }))} /></Field>
                 <Field label="Serial Number"><input className="input" value={newDevice.serial_number} onChange={(e) => setNewDevice((d) => ({ ...d, serial_number: e.target.value }))} /></Field>
                 <Field label="IMEI"><input className="input" value={newDevice.imei} onChange={(e) => setNewDevice((d) => ({ ...d, imei: e.target.value }))} /></Field>
                 <Field label="Color"><input className="input" value={newDevice.color} onChange={(e) => setNewDevice((d) => ({ ...d, color: e.target.value }))} /></Field>
-                <Field label="Device Condition" className="col-span-2"><textarea className="input" value={newDevice.condition_notes} onChange={(e) => setNewDevice((d) => ({ ...d, condition_notes: e.target.value }))} /></Field>
+                <Field label="Device Condition" className="sm:col-span-2"><textarea className="input" value={newDevice.condition_notes} onChange={(e) => setNewDevice((d) => ({ ...d, condition_notes: e.target.value }))} /></Field>
                 {devices.length > 0 && (
-                  <button type="button" className="text-sm text-ink/50 col-span-2 text-left" onClick={() => setAddingDevice(false)}>← Choose an existing device instead</button>
+                  <button type="button" className="text-sm text-ink/50 sm:col-span-2 text-left" onClick={() => setAddingDevice(false)}>← Choose an existing device instead</button>
                 )}
               </div>
             )}
@@ -262,8 +262,8 @@ export default function NewJobOrder() {
         {/* Repair Info */}
         <section className="card p-4">
           <h2 className="font-display font-semibold mb-3">Repair Information</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Reported Problem" className="col-span-2"><textarea required className="input" value={repair.reported_problem} onChange={(e) => setRepair((r) => ({ ...r, reported_problem: e.target.value }))} /></Field>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Field label="Reported Problem" className="sm:col-span-2"><textarea required className="input" value={repair.reported_problem} onChange={(e) => setRepair((r) => ({ ...r, reported_problem: e.target.value }))} /></Field>
             <Field label="Parts Required"><input className="input" value={repair.parts_required} onChange={(e) => setRepair((r) => ({ ...r, parts_required: e.target.value }))} /></Field>
             <Field label="Technician Assigned"><input className="input" placeholder="Type a technician's name" value={repair.technician_name} onChange={(e) => setRepair((r) => ({ ...r, technician_name: e.target.value }))} /></Field>
             <Field label="Estimated Cost (₱)"><input type="number" min="0" step="0.01" className="input" value={repair.estimated_cost} onChange={(e) => setRepair((r) => ({ ...r, estimated_cost: e.target.value }))} /></Field>
@@ -299,8 +299,8 @@ export default function NewJobOrder() {
           </button>
         </section>
 
-        {error && <p className="text-sm text-brand-red lg:col-span-2">{error}</p>}
-        <div className="flex flex-wrap gap-3 lg:col-span-2">
+        {error && <p className="text-sm text-brand-red">{error}</p>}
+        <div className="flex flex-wrap gap-3">
           <button type="submit" disabled={submitting} className="btn-primary disabled:opacity-60">
             {submitting ? "Creating…" : "Create Job Order"}
           </button>
