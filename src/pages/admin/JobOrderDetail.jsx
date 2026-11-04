@@ -28,12 +28,14 @@ export default function JobOrderDetail() {
     const res = await api.get(`/job-orders?id=${id}`);
     setData(res);
     setForm(formFromJobOrder(res.jobOrder));
+    const warrantyStart = toDateInputValue(res.warranty?.starts_on);
+    const warrantyEnd = toDateInputValue(res.warranty?.ends_on);
     setWarrantyForm({
       coverage: res.warranty?.coverage || "",
-      starts_on: toDateInputValue(res.warranty?.starts_on),
-      ends_on: toDateInputValue(res.warranty?.ends_on),
-      warranty_days: res.warranty?.starts_on && res.warranty?.ends_on
-        ? Math.max(1, Math.round((Date.parse(`${toDateInputValue(res.warranty.ends_on)}T00:00:00Z`) - Date.parse(`${toDateInputValue(res.warranty.starts_on)}T00:00:00Z`)) / 86400000))
+      starts_on: warrantyStart,
+      ends_on: warrantyEnd,
+      warranty_days: warrantyStart && warrantyEnd
+        ? Math.max(1, Math.round((Date.parse(`${warrantyEnd}T00:00:00Z`) - Date.parse(`${warrantyStart}T00:00:00Z`)) / 86400000))
         : ""
     });
     setItems(
@@ -114,7 +116,7 @@ export default function JobOrderDetail() {
     setSavingWarranty(true);
     setWarrantyMessage("");
     try {
-      await api.put(`/job-orders?id=${id}&action=warranty`, warrantyForm);
+      await api.put(`/job-orders?id=${id}&action=warranty`, { ...warrantyForm, warranty_days: warrantyForm.warranty_days || "" });
       setWarrantyMessage("Warranty saved.");
       load();
     } catch (err) {
@@ -278,11 +280,10 @@ export default function JobOrderDetail() {
                 onChange={(e) => setWarrantyForm((w) => ({ ...w, coverage: e.target.value }))}
               />
             </Field>
-            {isTechnician ? (
-              <Field label="Warranty Days">
-                <input type="number" min="1" step="1" required className="input" value={warrantyForm.warranty_days} onChange={(e) => setWarrantyForm((w) => ({ ...w, warranty_days: e.target.value }))} />
-              </Field>
-            ) : (
+            <Field label="Warranty Days">
+              <input type="number" min="1" step="1" className="input" value={warrantyForm.warranty_days} onChange={(e) => setWarrantyForm((w) => ({ ...w, warranty_days: e.target.value }))} />
+            </Field>
+            {!warrantyForm.warranty_days && (
               <>
                 <Field label="Starts On">
                   <input type="date" className="input" value={warrantyForm.starts_on || ""} onChange={(e) => setWarrantyForm((w) => ({ ...w, starts_on: e.target.value }))} />

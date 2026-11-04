@@ -101,8 +101,8 @@ export const HELP_CATEGORIES = [
         steps: [
           "Go to Job Orders and press New (or convert a Repair Request).",
           "Choose the customer and the device, or add new ones.",
-          "Describe the reported problem, enter the device type, and add any parts required. Technician-created orders are assigned to the signed-in technician.",
-          "Add items or parts and enter their unit costs. Technicians can also record warranty days; staff manage internal capital costs and payments.",
+          "Describe the reported problem, enter the device type and Brand/Model, and add any parts required. Technician-created orders are assigned to the signed-in technician.",
+          "Add items or parts with unit costs, plus the warranty duration in days.",
           "Save. The system assigns the job number automatically (for example JO-2026-0015)."
         ]
       },

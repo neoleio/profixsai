@@ -6,10 +6,10 @@ import { formatDate } from "../../lib/date.js";
 import { useAuth } from "../../lib/auth-context.jsx";
 
 const emptyCustomer = { full_name: "", contact_number: "", email: "", address: "" };
-const emptyDevice = { device_type: "", brand: "", model: "", serial_number: "", imei: "", color: "", condition_notes: "" };
+const emptyDevice = { device_type: "", brand: "", model: "", serial_number: "", condition_notes: "" };
 const emptyRepair = {
   reported_problem: "", parts_required: "", technician_name: "", repair_notes: "",
-  estimated_cost: "", warranty_info: "", warranty_days: ""
+  estimated_cost: "", warranty_days: ""
 };
 const emptyItem = () => ({ description: "", quantity: 1, unit_cost: "" });
 
@@ -50,7 +50,7 @@ export default function NewJobOrder() {
       address: ""
     });
     setAddingDevice(true);
-    setNewDevice((d) => ({ ...d, model: sourceRequest.device_description || "" }));
+    setNewDevice((d) => ({ ...d, brand: sourceRequest.device_description || "" }));
     setRepair((r) => ({ ...r, reported_problem: sourceRequest.problem_description || "" }));
   }, [sourceRequest]);
 
@@ -143,6 +143,7 @@ export default function NewJobOrder() {
         ...repair,
         estimated_cost: isTechnician ? 0 : repair.estimated_cost || 0,
         technician_name: isTechnician ? user.name : repair.technician_name,
+        warranty_days: repair.warranty_days || "",
         items: items.filter((it) => it.description.trim())
       });
 
@@ -183,9 +184,9 @@ export default function NewJobOrder() {
 
       {lookupError && <p className="mt-4 text-sm text-brand-red" role="alert">{lookupError}</p>}
 
-      <form onSubmit={onSubmit} className="mt-5 grid grid-cols-1 items-start gap-4">
+      <form onSubmit={onSubmit} className="card mt-5 flex flex-col gap-5 p-4 sm:p-6">
         {/* Customer */}
-        <section className="card p-5">
+        <section className="border-b border-ink/10 pb-5">
           <h2 className="font-display font-semibold mb-3">Customer Information</h2>
           {!addingCustomer ? (
             <>
@@ -231,7 +232,7 @@ export default function NewJobOrder() {
 
         {/* Device */}
         {(customerId || addingCustomer) && (
-          <section className="card p-5">
+          <section className="border-b border-ink/10 pb-5">
             <h2 className="font-display font-semibold mb-3">Device Information</h2>
             {devices.length > 0 && !addingDevice && (
               <>
@@ -249,11 +250,8 @@ export default function NewJobOrder() {
             {(devices.length === 0 || addingDevice) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Device Type"><input required placeholder="Enter device type" className="input" value={newDevice.device_type} onChange={(e) => setNewDevice((d) => ({ ...d, device_type: e.target.value }))} /></Field>
-                <Field label="Brand"><input className="input" value={newDevice.brand} onChange={(e) => setNewDevice((d) => ({ ...d, brand: e.target.value }))} /></Field>
-                <Field label="Model"><input className="input" value={newDevice.model} onChange={(e) => setNewDevice((d) => ({ ...d, model: e.target.value }))} /></Field>
+                <Field label="Brand/Model" className="sm:col-span-2"><input className="input" placeholder="Enter brand and model" value={newDevice.brand} onChange={(e) => setNewDevice((d) => ({ ...d, brand: e.target.value, model: "" }))} /></Field>
                 <Field label="Serial Number"><input className="input" value={newDevice.serial_number} onChange={(e) => setNewDevice((d) => ({ ...d, serial_number: e.target.value }))} /></Field>
-                <Field label="IMEI"><input className="input" value={newDevice.imei} onChange={(e) => setNewDevice((d) => ({ ...d, imei: e.target.value }))} /></Field>
-                <Field label="Color"><input className="input" value={newDevice.color} onChange={(e) => setNewDevice((d) => ({ ...d, color: e.target.value }))} /></Field>
                 <Field label="Device Condition" className="sm:col-span-2"><textarea className="input" value={newDevice.condition_notes} onChange={(e) => setNewDevice((d) => ({ ...d, condition_notes: e.target.value }))} /></Field>
                 {devices.length > 0 && (
                   <button type="button" className="text-sm text-ink/50 sm:col-span-2 text-left" onClick={() => setAddingDevice(false)}>← Choose an existing device instead</button>
@@ -264,20 +262,19 @@ export default function NewJobOrder() {
         )}
 
         {/* Repair Info */}
-        <section className="card p-5">
+        <section className="border-b border-ink/10 pb-5">
           <h2 className="font-display font-semibold mb-3">Repair Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Reported Problem" className="sm:col-span-2"><textarea required className="input" value={repair.reported_problem} onChange={(e) => setRepair((r) => ({ ...r, reported_problem: e.target.value }))} /></Field>
             <Field label="Parts Required"><input className="input" value={repair.parts_required} onChange={(e) => setRepair((r) => ({ ...r, parts_required: e.target.value }))} /></Field>
             {!isTechnician && <Field label="Technician Assigned"><input className="input" placeholder="Type a technician's name" value={repair.technician_name} onChange={(e) => setRepair((r) => ({ ...r, technician_name: e.target.value }))} /></Field>}
             {!isTechnician && <Field label="Estimated Cost (₱)"><input type="number" min="0" step="0.01" className="input" value={repair.estimated_cost} onChange={(e) => setRepair((r) => ({ ...r, estimated_cost: e.target.value }))} /></Field>}
-            {!isTechnician && <Field label="Warranty Information"><input className="input" value={repair.warranty_info} onChange={(e) => setRepair((r) => ({ ...r, warranty_info: e.target.value }))} /></Field>}
-            {isTechnician && <Field label="Warranty Days"><input type="number" min="1" step="1" className="input" value={repair.warranty_days} onChange={(e) => setRepair((r) => ({ ...r, warranty_days: e.target.value }))} /></Field>}
+            <Field label="Warranty Days"><input type="number" min="1" step="1" className="input" value={repair.warranty_days} onChange={(e) => setRepair((r) => ({ ...r, warranty_days: e.target.value }))} /></Field>
           </div>
         </section>
 
         {/* Items */}
-        <section className="card p-5">
+        <section>
           <h2 className="font-display font-semibold mb-1">Items</h2>
           <p className="text-xs text-ink/50 mb-3">Parts or services for this job — these carry over automatically when printing an Order Slip for this job order.</p>
           {items.map((it, i) => (

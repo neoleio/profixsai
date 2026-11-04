@@ -69,7 +69,7 @@ async function createJobOrder(req, res) {
 
   const safeStatus = !isTechnician && b.status && JOB_ORDER_STATUSES.includes(b.status) ? b.status : "Received";
   const safePaymentStatus = !isTechnician && b.payment_status && PAYMENT_STATUSES.includes(b.payment_status) ? b.payment_status : "Unpaid";
-  const warrantyDays = isTechnician && b.warranty_days !== undefined && b.warranty_days !== ""
+  const warrantyDays = b.warranty_days !== undefined && b.warranty_days !== ""
     ? Number(b.warranty_days)
     : null;
   if (warrantyDays !== null && (!Number.isInteger(warrantyDays) || warrantyDays < 1)) {
@@ -295,11 +295,12 @@ async function setWarranty(req, res, id) {
   const isTechnician = req.session.role === "technician";
   if (!["admin", "staff", "technician"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
   const { coverage, starts_on, ends_on } = req.body || {};
-  const warrantyDays = isTechnician ? Number(req.body?.warranty_days) : null;
-  if (isTechnician && (!Number.isInteger(warrantyDays) || warrantyDays < 1)) {
+  const hasWarrantyDays = req.body?.warranty_days !== undefined && req.body.warranty_days !== "";
+  const warrantyDays = hasWarrantyDays ? Number(req.body.warranty_days) : null;
+  if (hasWarrantyDays && (!Number.isInteger(warrantyDays) || warrantyDays < 1)) {
     return badRequest(res, "Warranty days must be a positive whole number.");
   }
-  if (!isTechnician && !ends_on) return badRequest(res, "A warranty end date is required.");
+  if (!hasWarrantyDays && !ends_on) return badRequest(res, "Enter warranty days or an end date.");
 
   const existingJob = await sql`select technician_id from job_orders where id = ${id}`;
   if (!existingJob[0]) return res.status(404).json({ error: "Job order not found." });
@@ -307,14 +308,14 @@ async function setWarranty(req, res, id) {
     return res.status(403).json({ error: "This job order is not assigned to you." });
   }
   const existing = await sql`select id from warranties where job_order_id = ${id}`;
-  const warrantyCoverage = sanitizeText(coverage, 300) || (isTechnician ? `Warranty (${warrantyDays} days)` : "");
+  const warrantyCoverage = sanitizeText(coverage, 300) || (hasWarrantyDays ? `Warranty (${warrantyDays} days)` : "");
   let rows;
   if (existing[0]) {
     rows = await sql`
       update warranties set
         coverage = ${warrantyCoverage},
-        starts_on = case when ${isTechnician} then current_date else ${starts_on || null} end,
-        ends_on = case when ${isTechnician} then current_date + ${warrantyDays || 0} else ${ends_on || null} end
+        starts_on = case when ${hasWarrantyDays} then coalesce(${starts_on || null}, current_date) else ${starts_on || null} end,
+        ends_on = case when ${hasWarrantyDays} then coalesce(${starts_on || null}, current_date) + ${warrantyDays || 0} else ${ends_on || null} end
       where job_order_id = ${id}
       returning *
     `;
@@ -324,8 +325,8 @@ async function setWarranty(req, res, id) {
       values (
         ${id},
         ${warrantyCoverage},
-        case when ${isTechnician} then current_date else ${starts_on || null} end,
-        case when ${isTechnician} then current_date + ${warrantyDays || 0} else ${ends_on || null} end
+        case when ${hasWarrantyDays} then coalesce(${starts_on || null}, current_date) else ${starts_on || null} end,
+        case when ${hasWarrantyDays} then coalesce(${starts_on || null}, current_date) + ${warrantyDays || 0} else ${ends_on || null} end
       )
       returning *
     `;

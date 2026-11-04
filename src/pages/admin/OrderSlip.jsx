@@ -177,16 +177,16 @@ export default function OrderSlip() {
 
         <div className="card p-6 mt-4 grid sm:grid-cols-3 gap-4">
           <label className="flex flex-col gap-1.5 text-sm">
-            <span className="font-medium text-ink/80">Amount</span>
-            <p className="input bg-fog-100 font-semibold">₱{total.toFixed(2)}</p>
+            <span className="font-medium text-ink/80">Total</span>
+            <p className="input border-brand-red bg-brand-red font-semibold text-white">₱{total.toFixed(2)}</p>
           </label>
           <label className="flex flex-col gap-1.5 text-sm">
             <span className="font-medium text-ink/80">Deposit</span>
-            <input type="number" min="0" step="0.01" className="input" value={deposit} readOnly={isTechnician} onChange={(e) => setDeposit(e.target.value)} />
+            <input type="number" min="0" step="0.01" className="input border-black bg-black font-semibold text-white" value={deposit} readOnly={isTechnician} onChange={(e) => setDeposit(e.target.value)} />
           </label>
           <label className="flex flex-col gap-1.5 text-sm">
-            <span className="font-medium text-ink/80">Balance</span>
-            <p className="input bg-fog-100 font-semibold">₱{balance.toFixed(2)}</p>
+            <span className="font-medium text-ink/80">Remaining Balance</span>
+            <p className="input border-black bg-black font-semibold text-white">₱{balance.toFixed(2)}</p>
           </label>
         </div>
 
@@ -267,10 +267,16 @@ function Copy({ settings, customer, jobOrderNo, items, total, deposit, balance, 
 
         <table className="w-full border border-ink border-collapse">
           <tbody>
-            <tr className="bg-brand-red text-white font-semibold">
-              <td className="border border-ink p-1">Deposit: {Number(deposit || 0).toFixed(2)}</td>
-              <td className="border border-ink p-1">Remaining Balance: {balance.toFixed(2)}</td>
-              <td className="border border-ink p-1">Total: {total.toFixed(2)}</td>
+            <tr className="font-semibold">
+              <td className="border border-white/30 p-1" style={{ backgroundColor: "#000000", color: "#ffffff", printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
+                Deposit: {Number(deposit || 0).toFixed(2)}
+              </td>
+              <td className="border border-white/30 p-1" style={{ backgroundColor: "#000000", color: "#ffffff", printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
+                Remaining Balance: {balance.toFixed(2)}
+              </td>
+              <td className="border border-white/30 p-1" style={{ backgroundColor: "#E23744", color: "#ffffff", printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
+                Total: {total.toFixed(2)}
+              </td>
             </tr>
           </tbody>
         </table>
