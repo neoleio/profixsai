@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Plus, Minus, Printer, FileInput } from "lucide-react";
 import { useSettings } from "../../lib/useSettings.js";
 import { api } from "../../lib/api.js";

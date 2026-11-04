@@ -9,7 +9,7 @@ const emptyCustomer = { full_name: "", contact_number: "", email: "", address: "
 const emptyDevice = { device_type: "", brand: "", model: "", serial_number: "", imei: "", color: "", condition_notes: "" };
 const emptyRepair = {
   reported_problem: "", parts_required: "", technician_name: "", repair_notes: "",
-  estimated_cost: "", warranty_info: ""
+  estimated_cost: "", warranty_info: "", warranty_days: ""
 };
 const emptyItem = () => ({ description: "", quantity: 1, unit_cost: "" });
 
@@ -137,15 +137,13 @@ export default function NewJobOrder() {
         setAddingDevice(false);
       }
 
-      const { jobOrder, itemsWarning, auditWarning } = await api.post("/job-orders", {
+      const { jobOrder, itemsWarning, warrantyWarning, auditWarning } = await api.post("/job-orders", {
         customer_id: finalCustomerId,
         device_id: finalDeviceId,
         ...repair,
         estimated_cost: isTechnician ? 0 : repair.estimated_cost || 0,
         technician_name: isTechnician ? user.name : repair.technician_name,
-        items: items.filter((it) => it.description.trim()).map((it) => (
-          isTechnician ? { ...it, unit_cost: 0 } : it
-        ))
+        items: items.filter((it) => it.description.trim())
       });
 
       if (sourceRequest) {
@@ -153,7 +151,7 @@ export default function NewJobOrder() {
         api.put(`/repair-requests?id=${sourceRequest.id}`, { status: "Converted" }).catch(() => {});
       }
 
-      navigate(`/admin/job-orders/${jobOrder.id}`, { state: { itemsWarning, auditWarning } });
+      navigate(`/admin/job-orders/${jobOrder.id}`, { state: { itemsWarning, warrantyWarning, auditWarning } });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -274,6 +272,7 @@ export default function NewJobOrder() {
             {!isTechnician && <Field label="Technician Assigned"><input className="input" placeholder="Type a technician's name" value={repair.technician_name} onChange={(e) => setRepair((r) => ({ ...r, technician_name: e.target.value }))} /></Field>}
             {!isTechnician && <Field label="Estimated Cost (₱)"><input type="number" min="0" step="0.01" className="input" value={repair.estimated_cost} onChange={(e) => setRepair((r) => ({ ...r, estimated_cost: e.target.value }))} /></Field>}
             {!isTechnician && <Field label="Warranty Information"><input className="input" value={repair.warranty_info} onChange={(e) => setRepair((r) => ({ ...r, warranty_info: e.target.value }))} /></Field>}
+            {isTechnician && <Field label="Warranty Days"><input type="number" min="1" step="1" className="input" value={repair.warranty_days} onChange={(e) => setRepair((r) => ({ ...r, warranty_days: e.target.value }))} /></Field>}
           </div>
         </section>
 
@@ -293,7 +292,7 @@ export default function NewJobOrder() {
               </label>
               <label className="flex min-w-0 flex-col gap-1 text-xs">
                 <span className="text-ink/50">Unit Cost (₱)</span>
-                <input type="number" min="0" step="0.01" className="input" value={isTechnician ? "0" : it.unit_cost} onChange={(e) => updateItem(i, "unit_cost", e.target.value)} readOnly={isTechnician} />
+                <input type="number" min="0" step="0.01" className="input" value={it.unit_cost} onChange={(e) => updateItem(i, "unit_cost", e.target.value)} />
               </label>
               <button type="button" onClick={() => removeItem(i)} disabled={items.length === 1} className="btn-secondary h-[42px] disabled:opacity-40" aria-label="Remove item">
                 <Minus size={15} />

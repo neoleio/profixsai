@@ -12,21 +12,24 @@ import { PageFade } from "../motion/index.jsx";
 
 export default function AdminLayout() {
   const [open, setOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem("admin-sidebar-collapsed") === "true");
   const location = useLocation();
   const { user } = useAuth();
-  const isTechnician = user?.role === "technician";
   const canSeeInboxes = ["admin", "staff"].includes(user?.role);
   const newRequestsCount = useNewRequestsCount(canSeeInboxes);
   const newMessagesCount = useNewMessagesCount(canSeeInboxes);
 
   return (
     <div className="min-h-screen flex bg-fog-50">
-      <aside className={`hidden lg:block shrink-0 ${isTechnician && sidebarCollapsed ? "w-20" : "w-64"}`}>
-        <div className={`fixed h-screen ${isTechnician && sidebarCollapsed ? "w-20" : "w-64"}`}>
+      <aside className={`hidden lg:block shrink-0 ${sidebarCollapsed ? "w-20" : "w-64"}`}>
+        <div className={`fixed h-screen ${sidebarCollapsed ? "w-20" : "w-64"}`}>
           <Sidebar
-            collapsed={isTechnician && sidebarCollapsed}
-            onToggleCollapse={() => setSidebarCollapsed((collapsed) => !collapsed)}
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed((collapsed) => {
+              const nextCollapsed = !collapsed;
+              localStorage.setItem("admin-sidebar-collapsed", String(nextCollapsed));
+              return nextCollapsed;
+            })}
           />
         </div>
       </aside>
@@ -43,7 +46,7 @@ export default function AdminLayout() {
               transition={{ duration: 0.2 }}
             />
             <motion.div
-              className={`absolute left-0 top-0 h-full ${isTechnician && sidebarCollapsed ? "w-20" : "w-64"}`}
+              className="absolute left-0 top-0 h-full w-64"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
@@ -51,7 +54,7 @@ export default function AdminLayout() {
             >
               <Sidebar
                 onNavigate={() => setOpen(false)}
-                collapsed={isTechnician && sidebarCollapsed}
+                collapsed={sidebarCollapsed}
                 onToggleCollapse={() => setSidebarCollapsed((collapsed) => !collapsed)}
               />
             </motion.div>
@@ -61,7 +64,7 @@ export default function AdminLayout() {
 
       <div className="flex-1 min-w-0 relative">
         <div
-          className={`fixed inset-0 ${isTechnician && sidebarCollapsed ? "lg:left-20" : "lg:left-64"} z-0 opacity-[0.13] pointer-events-none`}
+          className={`fixed inset-0 ${sidebarCollapsed ? "lg:left-20" : "lg:left-64"} z-0 opacity-[0.13] pointer-events-none`}
           style={{
             backgroundImage: "url(/assets/logo.png)",
             backgroundSize: "min(75vw, 640px) auto",

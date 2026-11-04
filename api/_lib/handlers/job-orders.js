@@ -69,6 +69,12 @@ async function createJobOrder(req, res) {
 
   const safeStatus = !isTechnician && b.status && JOB_ORDER_STATUSES.includes(b.status) ? b.status : "Received";
   const safePaymentStatus = !isTechnician && b.payment_status && PAYMENT_STATUSES.includes(b.payment_status) ? b.payment_status : "Unpaid";
+  const warrantyDays = isTechnician && b.warranty_days !== undefined && b.warranty_days !== ""
+    ? Number(b.warranty_days)
+    : null;
+  if (warrantyDays !== null && (!Number.isInteger(warrantyDays) || warrantyDays < 1)) {
+    return badRequest(res, "Warranty days must be a positive whole number.");
+  }
 
   const matchingDevice = await sql`
     select id from devices where id = ${b.device_id} and customer_id = ${b.customer_id}
@@ -108,9 +114,7 @@ async function createJobOrder(req, res) {
   let itemsWarning = null;
   if (Array.isArray(b.items) && b.items.length) {
     try {
-      await saveItems(jobOrder.id, isTechnician
-        ? b.items.map((item) => ({ ...item, unit_cost: 0 }))
-        : b.items);
+      await saveItems(jobOrder.id, b.items);
     } catch (err) {
       // The job order itself is already saved at this point — don't throw
       // and make the admin think nothing happened. Surface it as a warning
@@ -122,6 +126,19 @@ async function createJobOrder(req, res) {
     }
   }
 
+  let warrantyWarning = null;
+  if (warrantyDays !== null) {
+    try {
+      await sql`
+        insert into warranties (job_order_id, coverage, starts_on, ends_on)
+        values (${jobOrder.id}, ${`Warranty (${warrantyDays} days)`}, current_date, current_date + ${warrantyDays})
+      `;
+    } catch (err) {
+      console.error("Error saving job order warranty:", err);
+      warrantyWarning = "The job order was created, but its warranty could not be saved. Set it from the job order details.";
+    }
+  }
+
   let auditWarning = null;
   try {
     await logAction({ userId: req.session.sub, action: `Created job order ${job_no}`, entity: "job_orders", entityId: jobOrder.id });
@@ -129,7 +146,7 @@ async function createJobOrder(req, res) {
     console.error("Error auditing job order creation:", err);
     auditWarning = "The job order was created, but its audit entry couldn't be saved.";
   }
-  res.status(201).json({ jobOrder, itemsWarning, auditWarning });
+  res.status(201).json({ jobOrder, itemsWarning, warrantyWarning, auditWarning });
 }
 
 // Shared by create and the items sub-route: full replace (delete + re-insert)
@@ -275,25 +292,41 @@ async function addPayment(req, res, id) {
 }
 
 async function setWarranty(req, res, id) {
-  if (!["admin", "staff"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
+  const isTechnician = req.session.role === "technician";
+  if (!["admin", "staff", "technician"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
   const { coverage, starts_on, ends_on } = req.body || {};
-  if (!ends_on) return badRequest(res, "A warranty end date is required.");
+  const warrantyDays = isTechnician ? Number(req.body?.warranty_days) : null;
+  if (isTechnician && (!Number.isInteger(warrantyDays) || warrantyDays < 1)) {
+    return badRequest(res, "Warranty days must be a positive whole number.");
+  }
+  if (!isTechnician && !ends_on) return badRequest(res, "A warranty end date is required.");
 
+  const existingJob = await sql`select technician_id from job_orders where id = ${id}`;
+  if (!existingJob[0]) return res.status(404).json({ error: "Job order not found." });
+  if (isTechnician && existingJob[0].technician_id !== req.session.sub) {
+    return res.status(403).json({ error: "This job order is not assigned to you." });
+  }
   const existing = await sql`select id from warranties where job_order_id = ${id}`;
+  const warrantyCoverage = sanitizeText(coverage, 300) || (isTechnician ? `Warranty (${warrantyDays} days)` : "");
   let rows;
   if (existing[0]) {
     rows = await sql`
       update warranties set
-        coverage = ${sanitizeText(coverage, 300)},
-        starts_on = ${starts_on || null},
-        ends_on = ${ends_on}
+        coverage = ${warrantyCoverage},
+        starts_on = case when ${isTechnician} then current_date else ${starts_on || null} end,
+        ends_on = case when ${isTechnician} then current_date + ${warrantyDays || 0} else ${ends_on || null} end
       where job_order_id = ${id}
       returning *
     `;
   } else {
     rows = await sql`
       insert into warranties (job_order_id, coverage, starts_on, ends_on)
-      values (${id}, ${sanitizeText(coverage, 300)}, ${starts_on || null}, ${ends_on})
+      values (
+        ${id},
+        ${warrantyCoverage},
+        case when ${isTechnician} then current_date else ${starts_on || null} end,
+        case when ${isTechnician} then current_date + ${warrantyDays || 0} else ${ends_on || null} end
+      )
       returning *
     `;
   }
@@ -302,9 +335,12 @@ async function setWarranty(req, res, id) {
 }
 
 async function updateItems(req, res, id) {
-  if (!["admin", "staff"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
-  const existing = await sql`select id from job_orders where id = ${id}`;
+  if (!["admin", "staff", "technician"].includes(req.session.role)) return res.status(403).json({ error: "You do not have permission to do that." });
+  const existing = await sql`select id, technician_id from job_orders where id = ${id}`;
   if (!existing[0]) return res.status(404).json({ error: "Job order not found." });
+  if (req.session.role === "technician" && existing[0].technician_id !== req.session.sub) {
+    return res.status(403).json({ error: "This job order is not assigned to you." });
+  }
   const items = Array.isArray(req.body?.items) ? req.body.items : [];
   await saveItems(id, items);
   const rows = await sql`select * from job_order_items where job_order_id = ${id}`;

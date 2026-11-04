@@ -29,7 +29,7 @@ export const HELP_CATEGORIES = [
         points: [
           "Administrator — everything: all staff features plus Services, Users, Audit Logs, and Settings (website text, colors, and images).",
           "Staff — Repair Requests, Messages, Job Orders (create, edit, costs, payments, warranty), Customers, Devices, Order Slip, and Reports.",
-          "Technician — Dashboard and assigned Job Orders. Technicians can create orders, update repair notes and status, and print assigned orders; they cannot change costs or record payments."
+          "Technician — Dashboard and assigned Job Orders. Technicians can create orders, update repair notes, item unit costs, warranty days, and status, and print assigned orders; they cannot record payments or edit internal capital costs."
         ]
       },
       {
@@ -102,7 +102,7 @@ export const HELP_CATEGORIES = [
           "Go to Job Orders and press New (or convert a Repair Request).",
           "Choose the customer and the device, or add new ones.",
           "Describe the reported problem, enter the device type, and add any parts required. Technician-created orders are assigned to the signed-in technician.",
-          "Add items or parts. Staff manage job costs and warranty information.",
+          "Add items or parts and enter their unit costs. Technicians can also record warranty days; staff manage internal capital costs and payments.",
           "Save. The system assigns the job number automatically (for example JO-2026-0015)."
         ]
       },

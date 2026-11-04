@@ -17,7 +17,7 @@ export default function JobOrderDetail() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [paymentAmount, setPaymentAmount] = useState("");
-  const [warrantyForm, setWarrantyForm] = useState({ coverage: "", starts_on: "", ends_on: "" });
+  const [warrantyForm, setWarrantyForm] = useState({ coverage: "", starts_on: "", ends_on: "", warranty_days: "" });
   const [savingWarranty, setSavingWarranty] = useState(false);
   const [warrantyMessage, setWarrantyMessage] = useState("");
   const [items, setItems] = useState([]);
@@ -31,7 +31,10 @@ export default function JobOrderDetail() {
     setWarrantyForm({
       coverage: res.warranty?.coverage || "",
       starts_on: toDateInputValue(res.warranty?.starts_on),
-      ends_on: toDateInputValue(res.warranty?.ends_on)
+      ends_on: toDateInputValue(res.warranty?.ends_on),
+      warranty_days: res.warranty?.starts_on && res.warranty?.ends_on
+        ? Math.max(1, Math.round((Date.parse(`${toDateInputValue(res.warranty.ends_on)}T00:00:00Z`) - Date.parse(`${toDateInputValue(res.warranty.starts_on)}T00:00:00Z`)) / 86400000))
+        : ""
     });
     setItems(
       res.items && res.items.length
@@ -77,11 +80,16 @@ export default function JobOrderDetail() {
     setSaving(true);
     setMessage("");
     try {
-      await api.put(`/job-orders?id=${id}`, form);
       try {
-        if (!isTechnician) {
-          await api.put(`/job-orders?id=${id}&action=items`, { items: items.filter((it) => it.description.trim()) });
-        }
+        await api.put(`/job-orders?id=${id}`, form);
+      } catch (itemsErr) {
+        setMessage(itemsErr.message);
+        return;
+      }
+      try {
+        await api.put(`/job-orders?id=${id}&action=items`, {
+          items: items.filter((it) => it.description.trim())
+        });
         setMessage("Saved.");
       } catch (itemsErr) {
         setMessage(`Job order saved, but items didn't save: ${itemsErr.message}`);
@@ -122,9 +130,10 @@ export default function JobOrderDetail() {
 
   return (
     <div className="max-w-3xl">
-      {(location.state?.itemsWarning || location.state?.auditWarning) && (
+      {(location.state?.itemsWarning || location.state?.warrantyWarning || location.state?.auditWarning) && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg p-4 mb-4">
           {location.state.itemsWarning && <p>{location.state.itemsWarning} You can add them below and save.</p>}
+          {location.state.warrantyWarning && <p>{location.state.warrantyWarning}</p>}
           {location.state.auditWarning && <p>{location.state.auditWarning}</p>}
         </div>
       )}
@@ -169,8 +178,7 @@ export default function JobOrderDetail() {
           </div>
         </section>
 
-        {!isTechnician && (
-          <section className="card p-6">
+        <section className="card p-6">
             <h2 className="font-display font-semibold mb-1">Items</h2>
             <p className="text-xs text-ink/50 mb-4">Parts or services for this job — these carry over automatically when printing an Order Slip for this job order.</p>
             {items.map((it, i) => (
@@ -187,16 +195,19 @@ export default function JobOrderDetail() {
                   <span className="text-ink/50">Unit Cost (₱)</span>
                   <input type="number" min="0" step="0.01" className="input" value={it.unit_cost} onChange={(e) => updateItem(i, "unit_cost", e.target.value)} />
                 </label>
-                <button type="button" onClick={() => removeItem(i)} disabled={items.length === 1} className="btn-secondary h-[42px] disabled:opacity-40" aria-label="Remove item">
-                  <Minus size={15} />
-                </button>
+                {!isTechnician && (
+                  <button type="button" onClick={() => removeItem(i)} disabled={items.length === 1} className="btn-secondary h-[42px] disabled:opacity-40" aria-label="Remove item">
+                    <Minus size={15} />
+                  </button>
+                )}
               </div>
             ))}
-            <button type="button" onClick={addItem} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-blue hover:text-brand-blueDeep mt-1">
-              <Plus size={15} /> Add Item
-            </button>
+            {!isTechnician && (
+              <button type="button" onClick={addItem} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-blue hover:text-brand-blueDeep mt-1">
+                <Plus size={15} /> Add Item
+              </button>
+            )}
           </section>
-        )}
 
         {!isTechnician && (
           <section className="card p-6">
@@ -250,8 +261,7 @@ export default function JobOrderDetail() {
         </section>
       )}
 
-      {!isTechnician && (
-        <section className="card p-6 mt-8">
+      <section className="card p-6 mt-8">
           <div className="flex items-center gap-2 mb-1">
             <ShieldCheck size={18} className="text-brand-blue" />
             <h2 className="font-display font-semibold">Warranty Tracking</h2>
@@ -268,12 +278,20 @@ export default function JobOrderDetail() {
                 onChange={(e) => setWarrantyForm((w) => ({ ...w, coverage: e.target.value }))}
               />
             </Field>
-            <Field label="Starts On">
-              <input type="date" className="input" value={warrantyForm.starts_on || ""} onChange={(e) => setWarrantyForm((w) => ({ ...w, starts_on: e.target.value }))} />
-            </Field>
-            <Field label="Ends On">
-              <input type="date" required className="input" value={warrantyForm.ends_on || ""} onChange={(e) => setWarrantyForm((w) => ({ ...w, ends_on: e.target.value }))} />
-            </Field>
+            {isTechnician ? (
+              <Field label="Warranty Days">
+                <input type="number" min="1" step="1" required className="input" value={warrantyForm.warranty_days} onChange={(e) => setWarrantyForm((w) => ({ ...w, warranty_days: e.target.value }))} />
+              </Field>
+            ) : (
+              <>
+                <Field label="Starts On">
+                  <input type="date" className="input" value={warrantyForm.starts_on || ""} onChange={(e) => setWarrantyForm((w) => ({ ...w, starts_on: e.target.value }))} />
+                </Field>
+                <Field label="Ends On">
+                  <input type="date" required className="input" value={warrantyForm.ends_on || ""} onChange={(e) => setWarrantyForm((w) => ({ ...w, ends_on: e.target.value }))} />
+                </Field>
+              </>
+            )}
             {warrantyMessage && <p className="text-sm text-ink/60 sm:col-span-3">{warrantyMessage}</p>}
             <div className="sm:col-span-3">
               <button type="submit" disabled={savingWarranty} className="btn-secondary disabled:opacity-60">
@@ -282,7 +300,6 @@ export default function JobOrderDetail() {
             </div>
           </form>
         </section>
-      )}
     </div>
   );
 }
