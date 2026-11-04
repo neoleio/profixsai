@@ -205,7 +205,7 @@ async function updateJobOrder(req, res, id) {
       payment_status = coalesce(${requestedPaymentStatus}, payment_status),
       expected_completion = coalesce(${!isTechnician ? (b.expected_completion || null) : null}, expected_completion),
       warranty_info = coalesce(${!isTechnician && b.warranty_info !== undefined ? sanitizeText(b.warranty_info, 500) : null}, warranty_info),
-      released_at = case when ${requestedStatus} = 'Released' then coalesce(released_at, current_date) else released_at end,
+      released_at = case when ${requestedStatus} in ('Completed', 'Released') then coalesce(released_at, current_date) else released_at end,
       updated_at = now()
     where id = ${id}
     returning *
@@ -234,7 +234,7 @@ async function updateStatus(req, res, id) {
   const rows = await sql`
     update job_orders set
       status = ${status},
-      released_at = case when ${status} = 'Released' then coalesce(released_at, current_date) else released_at end,
+      released_at = case when ${status} in ('Completed', 'Released') then coalesce(released_at, current_date) else released_at end,
       updated_at = now()
     where id = ${id}
     returning *

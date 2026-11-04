@@ -90,7 +90,8 @@ export default function JobOrders() {
               <th className="py-3 px-4">Technician</th>
               <th className="py-3 px-4">Status</th>
               <th className="py-3 px-4">Payment</th>
-              <th className="py-3 px-4">Date</th>
+              <th className="py-3 px-4">Date Received</th>
+              <th className="py-3 px-4">Release Date</th>
               <th className="py-3 px-4">Actions</th>
             </tr>
           </thead>
@@ -104,6 +105,7 @@ export default function JobOrders() {
                 <td className="py-3 px-4"><StatusBadge value={j.status} /></td>
                 <td className="py-3 px-4"><StatusBadge value={j.payment_status} /></td>
                 <td className="py-3 px-4 text-ink/60">{formatDate(j.date_received)}</td>
+                <td className="py-3 px-4 text-ink/60">{formatDate(j.released_at) || "—"}</td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-1 text-ink/50">
                     <Link to={`/admin/job-orders/${j.id}`} title="View / Edit" aria-label={`View or edit job order ${j.job_no}`} className="p-2 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"><Eye size={16} /></Link>
@@ -116,7 +118,7 @@ export default function JobOrders() {
               </tr>
             ))}
             {!loading && jobOrders.length === 0 && (
-              <tr><td colSpan={8} className="py-8 text-center text-ink/40">No job orders match your search.</td></tr>
+              <tr><td colSpan={9} className="py-8 text-center text-ink/40">No job orders match your search.</td></tr>
             )}
           </tbody>
         </table>

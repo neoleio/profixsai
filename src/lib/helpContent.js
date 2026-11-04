@@ -101,8 +101,8 @@ export const HELP_CATEGORIES = [
         steps: [
           "Go to Job Orders and press New (or convert a Repair Request).",
           "Choose the customer and the device, or add new ones.",
-          "Describe the reported problem and requested repair, and type the technician's name.",
-          "Add items/parts with quantity and cost, plus estimated cost and expected completion date.",
+          "Describe the reported problem, enter the device type and technician's name, and add any parts required.",
+          "Add items/parts with quantity and cost, plus estimated cost and warranty information.",
           "Save. The system assigns the job number automatically (for example JO-2026-0015)."
         ]
       },
@@ -115,8 +115,8 @@ export const HELP_CATEGORIES = [
           "Diagnosing — the technician is inspecting it.",
           "Waiting for Approval — a quote was given and you're waiting for the customer's go-ahead.",
           "Not Repaired — the device couldn't be fixed or the customer declined.",
-          "Completed — repair finished and tested, ready for pick-up.",
-          "Released — handed back to the customer. The release date is recorded automatically."
+          "Completed — repair finished and tested, ready for pick-up. The release date is recorded automatically.",
+          "Released — handed back to the customer."
         ]
       },
       {

@@ -27,7 +27,8 @@ export default function DeviceDetail() {
               <th className="py-3 px-4">Job No.</th>
               <th className="py-3 px-4">Problem</th>
               <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4">Date</th>
+              <th className="py-3 px-4">Date Received</th>
+              <th className="py-3 px-4">Release Date</th>
             </tr>
           </thead>
           <tbody>
@@ -39,9 +40,10 @@ export default function DeviceDetail() {
                 <td className="py-3 px-4">{h.reported_problem}</td>
                 <td className="py-3 px-4"><StatusBadge value={h.status} /></td>
                 <td className="py-3 px-4 text-ink/60">{formatDate(h.date_received)}</td>
+                <td className="py-3 px-4 text-ink/60">{formatDate(h.released_at) || "—"}</td>
               </tr>
             ))}
-            {history.length === 0 && <tr><td colSpan={4} className="py-6 text-center text-ink/40">No repair history yet.</td></tr>}
+            {history.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-ink/40">No repair history yet.</td></tr>}
           </tbody>
         </table>
       </div>

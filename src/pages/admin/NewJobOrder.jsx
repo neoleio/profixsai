@@ -5,13 +5,12 @@ import { api } from "../../lib/api.js";
 import { formatDate } from "../../lib/date.js";
 
 const emptyCustomer = { full_name: "", contact_number: "", email: "", address: "" };
-const emptyDevice = { device_type: "Smartphone", brand: "", model: "", serial_number: "", imei: "", color: "", condition_notes: "" };
+const emptyDevice = { device_type: "", brand: "", model: "", serial_number: "", imei: "", color: "", condition_notes: "" };
 const emptyRepair = {
-  reported_problem: "", diagnosis: "", requested_repair: "", parts_required: "",
-  technician_name: "", repair_notes: "", estimated_cost: "", expected_completion: "", warranty_info: ""
+  reported_problem: "", parts_required: "", technician_name: "", repair_notes: "",
+  estimated_cost: "", warranty_info: ""
 };
 const emptyItem = () => ({ description: "", quantity: 1, unit_cost: "" });
-const DEVICE_TYPES = ["Smartphone", "Laptop", "Tablet", "Desktop", "GPU", "Printer", "Other"];
 
 export default function NewJobOrder() {
   const navigate = useNavigate();
@@ -157,7 +156,7 @@ export default function NewJobOrder() {
   }
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-6xl">
       <Link to="/admin/job-orders" className="inline-flex items-center gap-1.5 text-sm font-medium text-ink/50 hover:text-brand-blue transition-colors">
         <ArrowLeft size={15} /> Back to Job Orders
       </Link>
@@ -180,10 +179,10 @@ export default function NewJobOrder() {
 
       {lookupError && <p className="mt-4 text-sm text-brand-red" role="alert">{lookupError}</p>}
 
-      <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-8">
+      <form onSubmit={onSubmit} className="mt-5 grid grid-cols-1 lg:grid-cols-2 items-start gap-4">
         {/* Customer */}
-        <section className="card p-6">
-          <h2 className="font-display font-semibold mb-4">Customer Information</h2>
+        <section className="card p-4">
+          <h2 className="font-display font-semibold mb-3">Customer Information</h2>
           {!addingCustomer ? (
             <>
               <input
@@ -216,20 +215,20 @@ export default function NewJobOrder() {
               </button>
             </>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <Field label="Customer Name"><input required className="input" value={newCustomer.full_name} onChange={(e) => setNewCustomer((c) => ({ ...c, full_name: e.target.value }))} /></Field>
               <Field label="Contact Number"><input required className="input" value={newCustomer.contact_number} onChange={(e) => setNewCustomer((c) => ({ ...c, contact_number: e.target.value }))} /></Field>
               <Field label="Email"><input className="input" value={newCustomer.email} onChange={(e) => setNewCustomer((c) => ({ ...c, email: e.target.value }))} /></Field>
               <Field label="Address"><input className="input" value={newCustomer.address} onChange={(e) => setNewCustomer((c) => ({ ...c, address: e.target.value }))} /></Field>
-              <button type="button" className="text-sm text-ink/50 sm:col-span-2 text-left" onClick={() => setAddingCustomer(false)}>← Search existing customer instead</button>
+              <button type="button" className="text-sm text-ink/50 col-span-2 text-left" onClick={() => setAddingCustomer(false)}>← Search existing customer instead</button>
             </div>
           )}
         </section>
 
         {/* Device */}
         {(customerId || addingCustomer) && (
-          <section className="card p-6">
-            <h2 className="font-display font-semibold mb-4">Device Information</h2>
+          <section className="card p-4">
+            <h2 className="font-display font-semibold mb-3">Device Information</h2>
             {devices.length > 0 && !addingDevice && (
               <>
                 <select className="input" value={deviceId} onChange={(e) => setDeviceId(e.target.value)}>
@@ -244,20 +243,16 @@ export default function NewJobOrder() {
               </>
             )}
             {(devices.length === 0 || addingDevice) && (
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Field label="Device Type">
-                  <select className="input" value={newDevice.device_type} onChange={(e) => setNewDevice((d) => ({ ...d, device_type: e.target.value }))}>
-                    {DEVICE_TYPES.map((t) => <option key={t}>{t}</option>)}
-                  </select>
-                </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Device Type"><input required placeholder="Enter device type" className="input" value={newDevice.device_type} onChange={(e) => setNewDevice((d) => ({ ...d, device_type: e.target.value }))} /></Field>
                 <Field label="Brand"><input className="input" value={newDevice.brand} onChange={(e) => setNewDevice((d) => ({ ...d, brand: e.target.value }))} /></Field>
                 <Field label="Model"><input className="input" value={newDevice.model} onChange={(e) => setNewDevice((d) => ({ ...d, model: e.target.value }))} /></Field>
                 <Field label="Serial Number"><input className="input" value={newDevice.serial_number} onChange={(e) => setNewDevice((d) => ({ ...d, serial_number: e.target.value }))} /></Field>
                 <Field label="IMEI"><input className="input" value={newDevice.imei} onChange={(e) => setNewDevice((d) => ({ ...d, imei: e.target.value }))} /></Field>
                 <Field label="Color"><input className="input" value={newDevice.color} onChange={(e) => setNewDevice((d) => ({ ...d, color: e.target.value }))} /></Field>
-                <Field label="Device Condition" className="sm:col-span-2"><textarea className="input" value={newDevice.condition_notes} onChange={(e) => setNewDevice((d) => ({ ...d, condition_notes: e.target.value }))} /></Field>
+                <Field label="Device Condition" className="col-span-2"><textarea className="input" value={newDevice.condition_notes} onChange={(e) => setNewDevice((d) => ({ ...d, condition_notes: e.target.value }))} /></Field>
                 {devices.length > 0 && (
-                  <button type="button" className="text-sm text-ink/50 sm:col-span-2 text-left" onClick={() => setAddingDevice(false)}>← Choose an existing device instead</button>
+                  <button type="button" className="text-sm text-ink/50 col-span-2 text-left" onClick={() => setAddingDevice(false)}>← Choose an existing device instead</button>
                 )}
               </div>
             )}
@@ -265,35 +260,32 @@ export default function NewJobOrder() {
         )}
 
         {/* Repair Info */}
-        <section className="card p-6">
-          <h2 className="font-display font-semibold mb-4">Repair Information</h2>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Reported Problem" className="sm:col-span-2"><textarea required className="input" value={repair.reported_problem} onChange={(e) => setRepair((r) => ({ ...r, reported_problem: e.target.value }))} /></Field>
-            <Field label="Initial Diagnosis" className="sm:col-span-2"><textarea className="input" value={repair.diagnosis} onChange={(e) => setRepair((r) => ({ ...r, diagnosis: e.target.value }))} /></Field>
-            <Field label="Requested Repair" className="sm:col-span-2"><textarea className="input" value={repair.requested_repair} onChange={(e) => setRepair((r) => ({ ...r, requested_repair: e.target.value }))} /></Field>
+        <section className="card p-4">
+          <h2 className="font-display font-semibold mb-3">Repair Information</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Reported Problem" className="col-span-2"><textarea required className="input" value={repair.reported_problem} onChange={(e) => setRepair((r) => ({ ...r, reported_problem: e.target.value }))} /></Field>
             <Field label="Parts Required"><input className="input" value={repair.parts_required} onChange={(e) => setRepair((r) => ({ ...r, parts_required: e.target.value }))} /></Field>
             <Field label="Technician Assigned"><input className="input" placeholder="Type a technician's name" value={repair.technician_name} onChange={(e) => setRepair((r) => ({ ...r, technician_name: e.target.value }))} /></Field>
             <Field label="Estimated Cost (₱)"><input type="number" min="0" step="0.01" className="input" value={repair.estimated_cost} onChange={(e) => setRepair((r) => ({ ...r, estimated_cost: e.target.value }))} /></Field>
-            <Field label="Expected Completion Date"><input type="date" className="input" value={repair.expected_completion} onChange={(e) => setRepair((r) => ({ ...r, expected_completion: e.target.value }))} /></Field>
-            <Field label="Warranty Information" className="sm:col-span-2"><input className="input" value={repair.warranty_info} onChange={(e) => setRepair((r) => ({ ...r, warranty_info: e.target.value }))} /></Field>
+            <Field label="Warranty Information"><input className="input" value={repair.warranty_info} onChange={(e) => setRepair((r) => ({ ...r, warranty_info: e.target.value }))} /></Field>
           </div>
         </section>
 
         {/* Items */}
-        <section className="card p-6">
+        <section className="card p-4">
           <h2 className="font-display font-semibold mb-1">Items</h2>
-          <p className="text-xs text-ink/50 mb-4">Parts or services for this job — these carry over automatically when printing an Order Slip for this job order.</p>
+          <p className="text-xs text-ink/50 mb-3">Parts or services for this job — these carry over automatically when printing an Order Slip for this job order.</p>
           {items.map((it, i) => (
-            <div key={i} className="grid grid-cols-[1fr_80px_120px_auto] gap-3 items-end mb-3">
-              <label className="flex flex-col gap-1 text-xs">
+            <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px] sm:grid-cols-[minmax(0,1fr)_64px_96px_40px] gap-2 items-end mb-3">
+              <label className="flex min-w-0 flex-col gap-1 text-xs col-span-2 sm:col-span-1">
                 <span className="text-ink/50">Description</span>
                 <input className="input" value={it.description} onChange={(e) => updateItem(i, "description", e.target.value)} />
               </label>
-              <label className="flex flex-col gap-1 text-xs">
+              <label className="flex min-w-0 flex-col gap-1 text-xs">
                 <span className="text-ink/50">Qty</span>
                 <input type="number" min="1" className="input" value={it.quantity} onChange={(e) => updateItem(i, "quantity", e.target.value)} />
               </label>
-              <label className="flex flex-col gap-1 text-xs">
+              <label className="flex min-w-0 flex-col gap-1 text-xs">
                 <span className="text-ink/50">Unit Cost (₱)</span>
                 <input type="number" min="0" step="0.01" className="input" value={it.unit_cost} onChange={(e) => updateItem(i, "unit_cost", e.target.value)} />
               </label>
@@ -307,8 +299,8 @@ export default function NewJobOrder() {
           </button>
         </section>
 
-        {error && <p className="text-sm text-brand-red">{error}</p>}
-        <div className="flex flex-wrap gap-3">
+        {error && <p className="text-sm text-brand-red lg:col-span-2">{error}</p>}
+        <div className="flex flex-wrap gap-3 lg:col-span-2">
           <button type="submit" disabled={submitting} className="btn-primary disabled:opacity-60">
             {submitting ? "Creating…" : "Create Job Order"}
           </button>
