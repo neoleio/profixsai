@@ -9,7 +9,7 @@ const emptyCustomer = { full_name: "", contact_number: "", email: "", address: "
 const emptyDevice = { device_type: "", brand: "", model: "", serial_number: "", condition_notes: "" };
 const emptyRepair = {
   reported_problem: "", parts_required: "", technician_name: "", repair_notes: "",
-  estimated_cost: "", warranty_days: ""
+  estimated_cost: ""
 };
 const emptyItem = () => ({ description: "", quantity: 1, unit_cost: "" });
 
@@ -83,6 +83,7 @@ export default function NewJobOrder() {
     let active = true;
     const handle = setTimeout(() => {
       if (customerQuery.trim()) {
+        setLookupError("");
         api.get(`/customers?q=${encodeURIComponent(customerQuery)}`)
           .then(({ customers }) => { if (active) setCustomers(customers); })
           .catch((err) => { if (active) setLookupError(`Customer search failed: ${err.message}`); });
@@ -103,6 +104,7 @@ export default function NewJobOrder() {
       setDevices([]);
       return () => { active = false; };
     }
+    setLookupError("");
     api.get(`/customers?id=${customerId}`)
       .then(({ devices }) => { if (active) setDevices(devices); })
       .catch((err) => { if (active) setLookupError(`Loading this customer's devices failed: ${err.message}`); });
@@ -143,7 +145,6 @@ export default function NewJobOrder() {
         ...repair,
         estimated_cost: isTechnician ? 0 : repair.estimated_cost || 0,
         technician_name: isTechnician ? user.name : repair.technician_name,
-        warranty_days: repair.warranty_days || "",
         items: items.filter((it) => it.description.trim())
       });
 
@@ -236,7 +237,7 @@ export default function NewJobOrder() {
             <h2 className="font-display font-semibold mb-3">Device Information</h2>
             {devices.length > 0 && !addingDevice && (
               <>
-                <select className="input" value={deviceId} onChange={(e) => setDeviceId(e.target.value)}>
+                <select required className="input" value={deviceId} onChange={(e) => setDeviceId(e.target.value)}>
                   <option value="">Select an existing device</option>
                   {devices.map((d) => (
                     <option key={d.id} value={d.id}>{d.device_type} — {d.brand} {d.model} ({d.serial_number || "no serial"})</option>
@@ -250,9 +251,9 @@ export default function NewJobOrder() {
             {(devices.length === 0 || addingDevice) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Device Type"><input required placeholder="Enter device type" className="input" value={newDevice.device_type} onChange={(e) => setNewDevice((d) => ({ ...d, device_type: e.target.value }))} /></Field>
-                <Field label="Brand/Model" className="sm:col-span-2"><input className="input" placeholder="Enter brand and model" value={newDevice.brand} onChange={(e) => setNewDevice((d) => ({ ...d, brand: e.target.value, model: "" }))} /></Field>
+                <Field label="Brand/Model"><input className="input" placeholder="Enter brand and model" value={newDevice.brand} onChange={(e) => setNewDevice((d) => ({ ...d, brand: e.target.value, model: "" }))} /></Field>
                 <Field label="Serial Number"><input className="input" value={newDevice.serial_number} onChange={(e) => setNewDevice((d) => ({ ...d, serial_number: e.target.value }))} /></Field>
-                <Field label="Device Condition" className="sm:col-span-2"><textarea className="input" value={newDevice.condition_notes} onChange={(e) => setNewDevice((d) => ({ ...d, condition_notes: e.target.value }))} /></Field>
+                <Field label="Device Condition"><textarea className="input" value={newDevice.condition_notes} onChange={(e) => setNewDevice((d) => ({ ...d, condition_notes: e.target.value }))} /></Field>
                 {devices.length > 0 && (
                   <button type="button" className="text-sm text-ink/50 sm:col-span-2 text-left" onClick={() => setAddingDevice(false)}>← Choose an existing device instead</button>
                 )}
@@ -265,11 +266,10 @@ export default function NewJobOrder() {
         <section className="border-b border-ink/10 pb-5">
           <h2 className="font-display font-semibold mb-3">Repair Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field label="Reported Problem" className="sm:col-span-2"><textarea required className="input" value={repair.reported_problem} onChange={(e) => setRepair((r) => ({ ...r, reported_problem: e.target.value }))} /></Field>
+            <Field label="Reported Problem"><textarea required className="input" value={repair.reported_problem} onChange={(e) => setRepair((r) => ({ ...r, reported_problem: e.target.value }))} /></Field>
             <Field label="Parts Required"><input className="input" value={repair.parts_required} onChange={(e) => setRepair((r) => ({ ...r, parts_required: e.target.value }))} /></Field>
             {!isTechnician && <Field label="Technician Assigned"><input className="input" placeholder="Type a technician's name" value={repair.technician_name} onChange={(e) => setRepair((r) => ({ ...r, technician_name: e.target.value }))} /></Field>}
             {!isTechnician && <Field label="Estimated Cost (₱)"><input type="number" min="0" step="0.01" className="input" value={repair.estimated_cost} onChange={(e) => setRepair((r) => ({ ...r, estimated_cost: e.target.value }))} /></Field>}
-            <Field label="Warranty Days"><input type="number" min="1" step="1" className="input" value={repair.warranty_days} onChange={(e) => setRepair((r) => ({ ...r, warranty_days: e.target.value }))} /></Field>
           </div>
         </section>
 
@@ -278,8 +278,8 @@ export default function NewJobOrder() {
           <h2 className="font-display font-semibold mb-1">Items</h2>
           <p className="text-xs text-ink/50 mb-3">Parts or services for this job — these carry over automatically when printing an Order Slip for this job order.</p>
           {items.map((it, i) => (
-            <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px] sm:grid-cols-[minmax(0,1fr)_64px_96px_40px] gap-2 items-end mb-3">
-              <label className="flex min-w-0 flex-col gap-1 text-xs col-span-2 sm:col-span-1">
+            <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end mb-3">
+              <label className="flex min-w-0 flex-col gap-1 text-xs">
                 <span className="text-ink/50">Description</span>
                 <input className="input" value={it.description} onChange={(e) => updateItem(i, "description", e.target.value)} />
               </label>
@@ -291,7 +291,7 @@ export default function NewJobOrder() {
                 <span className="text-ink/50">Unit Cost (₱)</span>
                 <input type="number" min="0" step="0.01" className="input" value={it.unit_cost} onChange={(e) => updateItem(i, "unit_cost", e.target.value)} />
               </label>
-              <button type="button" onClick={() => removeItem(i)} disabled={items.length === 1} className="btn-secondary h-[42px] disabled:opacity-40" aria-label="Remove item">
+              <button type="button" onClick={() => removeItem(i)} disabled={items.length === 1} className="btn-secondary h-[42px] w-fit disabled:opacity-40" aria-label="Remove item">
                 <Minus size={15} />
               </button>
             </div>
@@ -301,7 +301,7 @@ export default function NewJobOrder() {
           </button>
         </section>
 
-        {error && <p className="text-sm text-brand-red">{error}</p>}
+        {error && <p className="text-sm text-brand-red" role="alert">{error}</p>}
         <div className="flex flex-wrap gap-3">
           <button type="submit" disabled={submitting} className="btn-primary disabled:opacity-60">
             {submitting ? "Creating…" : "Create Job Order"}
